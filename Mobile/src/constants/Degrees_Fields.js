@@ -1,0 +1,103 @@
+import {
+    Laptop,
+    Brain,
+    Shield,
+    Cloud,
+    Network,
+    Briefcase,
+    Megaphone,
+    Wallet,
+    Calculator,
+    BarChart3,
+    Users,
+    Cog,
+    Cpu,
+    HardDrive,
+    Building2,
+    PenTool,
+    Stethoscope,
+    SmilePlus,
+    Pill,
+    HeartPulse,
+    Scale,
+    Handshake,
+    Book,
+    Palette,
+    Newspaper,
+    Globe,
+    History,
+    Atom,
+    FlaskRound,
+    Sigma,
+    Dumbbell,
+    Hotel,
+} from "lucide-react-native";
+
+
+// Degree list with icons
+export const degrees = [
+    { title: "High School", icon: "school-outline" },
+    { title: "Diploma", icon: "ribbon-outline" },
+    { title: "Bachelor", icon: "school" },
+    { title: "Master", icon: "medal-outline" },
+    { title: "PhD", icon: "trophy-outline" },
+];
+
+export const fields = [
+    { name: "Computer Science", icon: Laptop },
+    { name: "Software Engineering", icon: Cpu },
+    { name: "Information Technology", icon: HardDrive },
+    { name: "Cybersecurity", icon: Shield },
+    { name: "Artificial Intelligence", icon: Brain },
+    { name: "Data Science", icon: BarChart3 },
+    { name: "Machine Learning", icon: Brain },
+    { name: "Cloud Computing", icon: Cloud },
+    { name: "Network Engineering", icon: Network },
+
+    { name: "Business Administration", icon: Briefcase },
+    { name: "Marketing", icon: Megaphone },
+    { name: "Finance", icon: Wallet },
+    { name: "Accounting", icon: Calculator },
+    { name: "Economics", icon: BarChart3 },
+    { name: "Human Resources", icon: Users },
+
+    { name: "Mechanical Engineering", icon: Cog },
+    { name: "Electrical Engineering", icon: Cpu },
+    { name: "Electronics Engineering", icon: HardDrive },
+    { name: "Civil Engineering", icon: Building2 },
+    { name: "Industrial Engineering", icon: Cog },
+    { name: "Chemical Engineering", icon: FlaskRound },
+    { name: "Architecture", icon: Building2 },
+    { name: "Interior Design", icon: PenTool },
+
+    { name: "Medicine", icon: Stethoscope },
+    { name: "Dentistry", icon: SmilePlus },
+    { name: "Pharmacy", icon: Pill },
+    { name: "Nursing", icon: HeartPulse },
+
+    { name: "Law", icon: Scale },
+    { name: "Psychology", icon: Brain },
+    { name: "Sociology", icon: Handshake },
+    { name: "Education", icon: Book },
+
+    { name: "Graphic Design", icon: Palette },
+    { name: "Journalism", icon: Newspaper },
+    { name: "Media & Communication", icon: Globe },
+    { name: "Political Science", icon: Globe },
+    { name: "History", icon: History },
+
+    { name: "Biology", icon: Atom },
+    { name: "Physics", icon: Atom },
+    { name: "Chemistry", icon: FlaskRound },
+    { name: "Mathematics", icon: Sigma },
+
+    { name: "Sports Science", icon: Dumbbell },
+    { name: "Hospitality Management", icon: Hotel },
+
+    // Emoji fallback fields 🧠🔥
+    { name: "Computer Engineering", icon: null, emoji: "💻" },
+    { name: "Game Development", icon: null, emoji: "🎮" },
+    { name: "Robotics", icon: null, emoji: "🤖" },
+    { name: "Animation", icon: null, emoji: "🎬" },
+    { name: "Social Work", icon: null, emoji: "🤝" },
+];

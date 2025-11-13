@@ -1,0 +1,12 @@
+{
+  "name": "sps-senior-project",
+  "scripts": {
+    "dev": "concurrently \"npm --prefix backend run dev\" \"npm --prefix mobile start\"",
+    "backend": "npm --prefix backend run dev",
+    "mobile": "npm --prefix mobile start"
+  },
+  "dependencies": {
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.10"
+  }
+}
