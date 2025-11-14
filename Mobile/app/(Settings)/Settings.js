@@ -9,7 +9,6 @@ import AppInfoSection from "@/src/components/Settings/sections/AppInfoSection";
 
 export default function SettingsScreen() {
   const { Expo_Router, darkMode, App_Language } = useAuth();
-  const isDark = darkMode === "dark";
 
   const t = App_Language?.startsWith("ar")
     ? { settings: "الإعدادات" }
@@ -19,12 +18,11 @@ export default function SettingsScreen() {
     <ScrollView
       style={{
         flex: 1,
-        backgroundColor: isDark ? "#0b0b0b" : "#fafafa",
+        backgroundColor: darkMode === "light" ? "#f5f5f5" : "#0a0a0a",
       }}
       contentContainerStyle={{ paddingBottom: 80 }}
     >
-      <SettingsHeader onBack={() => Expo_Router.back()} title={t.settings} isDark={isDark} />
-
+      <SettingsHeader onBack={() => Expo_Router.back()} title={t.settings} isDark={darkMode === "light" ? false : true} />
       <AccountSection />
 
       <ContentDisplaySection />

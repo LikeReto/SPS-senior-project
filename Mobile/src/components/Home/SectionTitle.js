@@ -16,6 +16,6 @@ export default function SectionTitle({ title, subtitle, isDark }) {
 
 const styles = StyleSheet.create({
   container: { paddingHorizontal: 18, marginTop: 8 },
-  title: { fontSize: 22, fontWeight: "800" },
+  title: { fontSize: 17, fontWeight: "800" },
   subtitle: { fontSize: 13, marginTop: 2 },
 });

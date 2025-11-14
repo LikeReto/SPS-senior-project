@@ -31,7 +31,6 @@ function getDistance(lat1, lon1, lat2, lon2) {
 
 export default function Search() {
     const { Expo_Router, darkMode, location } = useAuth();
-    const isDark = darkMode === "dark";
 
     const [query, setQuery] = useState("");
     const [sortBy, setSortBy] = useState("nearest");
@@ -68,7 +67,8 @@ export default function Search() {
     }, [workersWithDistance, query]);
 
     return (
-        <View style={[styles.container, { backgroundColor: isDark ? "#0a0a0a" : "#f5f5f5" }]}>
+        <View style={[styles.container, { backgroundColor: darkMode === 'light' ? "#f5f5f5" : "#0a0a0a" }]}
+            >
             {/* Search bar */}
             <View style={styles.header}>
                 <Animatable.View
@@ -82,7 +82,7 @@ export default function Search() {
                         activeOpacity={0.7}
                         style={styles.backButton}
                     >
-                        <Ionicons name="arrow-back" size={24} color={isDark ? "white" : "#111"} />
+                        <Ionicons name="arrow-back" size={24} color={darkMode === 'light' ? "#111" : "white"} />
                     </TouchableOpacity>
                 </Animatable.View>
 
@@ -90,15 +90,15 @@ export default function Search() {
                     value={query}
                     onChangeText={setQuery}
                     placeholder="Search workers..."
-                    placeholderTextColor={isDark ? "#888" : "#aaa"}
+                    placeholderTextColor={darkMode === 'light' ? "#888" : "#aaa"}
                     style={[
                         styles.searchInput,
-                        { backgroundColor: isDark ? "#1f1f1f" : "#fff", color: isDark ? "white" : "#111" },
+                        { backgroundColor: darkMode === 'light' ? "#fff" : "#1f1f1f", color: darkMode === 'light' ? "#111" : "white" },
                     ]}
                 />
 
                 <TouchableOpacity onPress={() => setQuery("")} style={styles.clearButton}>
-                    <Ionicons name="close" size={20} color={isDark ? "white" : "#111"} />
+                    <Ionicons name="close" size={20} color={darkMode === 'light' ? "#111" : "white"} />
                 </TouchableOpacity>
             </View>
 
@@ -108,19 +108,19 @@ export default function Search() {
                     onPress={() => setSortBy("nearest")}
                     style={[
                         styles.filterButton,
-                        { backgroundColor: sortBy === "nearest" ? "#10b981" : isDark ? "#1f1f1f" : "#e6f9f0" },
+                        { backgroundColor: sortBy === "nearest" ? "#10b981" : darkMode === 'light' ? "#e6f9f0" : "#1f1f1f" },
                     ]}
                 >
-                    <Text style={{ color: sortBy === "nearest" ? "#fff" : isDark ? "white" : "#111" }}>Nearest</Text>
+                    <Text style={{ color: sortBy === "nearest" ? "#fff" : darkMode === 'light' ? "#111" : "white" }}>Nearest</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     onPress={() => setSortBy("top")}
                     style={[
                         styles.filterButton,
-                        { backgroundColor: sortBy === "top" ? "#10b981" : isDark ? "#1f1f1f" : "#e6f9f0" },
+                        { backgroundColor: sortBy === "top" ? "#10b981" : darkMode === 'light' ? "#e6f9f0" : "#1f1f1f" },
                     ]}
                 >
-                    <Text style={{ color: sortBy === "top" ? "#fff" : isDark ? "white" : "#111" }}>Top Rated</Text>
+                    <Text style={{ color: sortBy === "top" ? "#fff" : darkMode === 'light' ? "#111" : "white" }}>Top Rated</Text>
                 </TouchableOpacity>
             </View>
 
@@ -133,7 +133,7 @@ export default function Search() {
                         key={worker.id}
                         worker={worker}
                         onPress={() => Expo_Router.push(`/worker/${worker.id}`)}
-                        isDark={isDark}
+                        isDark={darkMode === 'light' ? false : true}
                     />
                 ))}
             </ScrollView>

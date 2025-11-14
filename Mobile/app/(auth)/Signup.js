@@ -11,7 +11,6 @@ import { signupValidationSchema } from "@/src/lib/validation/Auth/Login_SignUp";
 
 export default function SignupScreen() {
     const { Expo_Router, darkMode, App_Language, registerUser } = useAuth();
-    const isDark = darkMode === "dark";
 
     const initialValues = {
         name: "",
@@ -43,10 +42,10 @@ export default function SignupScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container(darkMode)}>
             <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
                 <TouchableOpacity onPress={() => Expo_Router.back()} disabled={loading}>
-                    <Ionicons name="arrow-back" size={28} color={isDark ? "white" : "#111"} />
+                    <Ionicons name="arrow-back" size={28} color={darkMode === "light" ? "#111" : "white"} />
                 </TouchableOpacity>
 
                 <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "space-around" }}>
@@ -65,14 +64,14 @@ export default function SignupScreen() {
 
                             return (
                                 <View>
-                                    <Animated.Text entering={FadeInUp} style={styles.title}>
+                                    <Animated.Text entering={FadeInUp} style={styles.title(darkMode)}>
                                         {App_Language.startsWith("ar") ? "إنشاء حساب ✨" : "Create Account ✨"}
                                     </Animated.Text>
 
                                     {/* Name */}
                                     <TextInput
                                         placeholder={App_Language.startsWith("ar") ? "الاسم" : "Name"}
-                                        placeholderTextColor={isDark ? "#888" : "#555"}
+                                        placeholderTextColor={darkMode === "light" ? "#555555" : "#888888"}
                                         value={values.name}
                                         onChangeText={handleChange("name")}
                                         onBlur={handleBlur("name")}
@@ -88,7 +87,7 @@ export default function SignupScreen() {
                                     {/* Username */}
                                     <TextInput
                                         placeholder={App_Language.startsWith("ar") ? "اسم المستخدم" : "Username"}
-                                        placeholderTextColor={isDark ? "#888" : "#555"}
+                                        placeholderTextColor={darkMode === "light" ? "#555555" : "#888888"}
                                         value={values.username.toLowerCase().replace(/\s/g, "")}
                                         onChangeText={handleChange("username")}
                                         onBlur={handleBlur("username")}
@@ -104,7 +103,7 @@ export default function SignupScreen() {
                                     {/* Email */}
                                     <TextInput
                                         placeholder={App_Language.startsWith("ar") ? "البريد الإلكتروني" : "Email"}
-                                        placeholderTextColor={isDark ? "#888" : "#555"}
+                                        placeholderTextColor={darkMode === "light" ? "#555555" : "#888888"}
                                         value={values.email.toLowerCase().replace(/\s/g, "")}
                                         onChangeText={handleChange("email")}
                                         onBlur={handleBlur("email")}
@@ -121,7 +120,7 @@ export default function SignupScreen() {
                                     <View style={{ position: "relative" }}>
                                         <TextInput
                                             placeholder={App_Language.startsWith("ar") ? "كلمة المرور" : "Password"}
-                                            placeholderTextColor={isDark ? "#888" : "#555"}
+                                            placeholderTextColor={darkMode === "light" ? "#555555" : "#888888"}
                                             secureTextEntry={!showPassword}
                                             value={values.password.replace(/\s/g, "")}
                                             onChangeText={handleChange("password")}
@@ -185,19 +184,25 @@ export default function SignupScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1, justifyContent: "space-around", paddingHorizontal: 25, backgroundColor: "#000"
-    },
-    title: { fontSize: 36, fontWeight: "800", color: "#fff", marginBottom: 20 },
-
+    container: (darkMode) => ({
+        flex: 1,
+        justifyContent: 'space-around',
+        paddingHorizontal: 25,
+        backgroundColor: darkMode === "light" ? "#f5f5f5" : "#0a0a0a",
+    }),
+    title: (darkMode) => ({
+        fontSize: 36,
+        fontWeight: "800",
+        color: darkMode === "light" ? "#111" : "#fff",
+        marginBottom: 30
+    }),
     input: (darkMode) => ({
-        color: darkMode === "dark" ? "#fff" : "#111",
+        color: darkMode === "light" ? "#111" : "#fff",
         fontSize: 16,
-        backgroundColor: "#111",
+        backgroundColor: darkMode === "light" ? "#f0f0f0" : "#1a1a1a",
         padding: 16,
         borderRadius: 16,
-        marginVertical: 6,
-        borderWidth: 0
+        marginVertical: 8
     }),
 
     errorBorder: { borderWidth: 1, borderColor: "red" },

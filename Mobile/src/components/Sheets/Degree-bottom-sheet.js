@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   View,
@@ -15,18 +15,37 @@ export default function DegreePicker({
   visible,
   onClose,
   onSelect,
-  darkMode = "light",
+  darkMode,
   selected,
+  App_Language,
 }) {
-  const isDark = darkMode === "dark";
-
   const [step, setStep] = useState(1);
-  const [tempDegree, setTempDegree] = useState(selected || "");
+  const [tempDegree, setTempDegree] = useState("");
+  const [tempField, setTempField] = useState("");
   const [search, setSearch] = useState("");
 
-  const filteredFields = fields.filter((f) =>
-    f.name.toLowerCase().includes(search.toLowerCase())
-  );
+  // Parse the selected value on open
+  useEffect(() => {
+    if (selected?.includes(" in ")) {
+      const [deg, field] = selected.split(" in ");
+      setTempDegree(deg);
+      setTempField(field);
+      setStep(2);
+    } else if (selected) {
+      setTempDegree(selected);
+      setTempField("");
+      setStep(selected === "High School" ? 1 : 2);
+    } else {
+      setTempDegree("");
+      setTempField("");
+      setStep(1);
+    }
+  }, [selected, visible]);
+
+  const filteredFields = fields.filter((f) => {
+    const label = App_Language?.startsWith("ar") ? f.label.ar : f.label.en;
+    return label.toLowerCase().includes(search.toLowerCase());
+  });
 
   const handleDegreeSelect = (deg) => {
     if (deg === "High School") {
@@ -34,12 +53,12 @@ export default function DegreePicker({
       onClose();
       return;
     }
-
     setTempDegree(deg);
     setStep(2);
   };
 
   const handleFieldSelect = (field) => {
+    setTempField(field);
     onSelect(`${tempDegree} in ${field}`);
     onClose();
     setStep(1);
@@ -50,6 +69,26 @@ export default function DegreePicker({
     onClose();
   };
 
+  // ⭐ Highlight matched letters in yellow
+  const highlightMatch = (text, query) => {
+    if (!query) return <Text>{text}</Text>;
+    const regex = new RegExp(`(${query})`, "i");
+    const parts = text.split(regex);
+    return (
+      <Text>
+        {parts.map((part, i) =>
+          regex.test(part) ? (
+            <Text key={i} style={{ backgroundColor: "yellow" }}>
+              {part}
+            </Text>
+          ) : (
+            <Text key={i}>{part}</Text>
+          )
+        )}
+      </Text>
+    );
+  };
+
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <TouchableOpacity style={styles.backdrop} onPress={closeSheet} />
@@ -57,7 +96,7 @@ export default function DegreePicker({
       <View
         style={[
           styles.sheet,
-          { backgroundColor: isDark ? "#0f0f0f" : "#fff" },
+          { backgroundColor: darkMode === "light" ? "#ffffff" : "#1a1a1a" },
         ]}
       >
         <View style={styles.dragLine} />
@@ -66,52 +105,56 @@ export default function DegreePicker({
         {step === 1 && (
           <>
             <Text
-              style={[styles.title, { color: isDark ? "#fff" : "#111" }]}
+              style={[
+                styles.title,
+                { color: darkMode === "light" ? "#111" : "#fff" },
+              ]}
             >
-              Select Degree
+              {App_Language?.startsWith("ar") ? "اختر الدرجة العلمية" : "Select Degree"}
             </Text>
 
             <FlatList
               data={degrees}
               keyExtractor={(item) => item.title}
               renderItem={({ item }) => {
-                const isSelected = item.title === selected;
+                const isSelected = item.title === tempDegree;
+                const label = App_Language?.startsWith("ar") ? item.label?.ar ?? item.title : item.label?.en ?? item.title;
+
                 return (
                   <TouchableOpacity
                     style={[
                       styles.option,
                       isSelected && {
-                        backgroundColor: isDark ? "#222" : "#eaeaea",
+                        backgroundColor:
+                          darkMode === "light" ? "#d1fae5" : "#064e3b33",
                       },
                     ]}
                     onPress={() => handleDegreeSelect(item.title)}
                   >
                     <View style={styles.row}>
-                      <Ionicons
-                        name={item.icon}
-                        size={22}
-                        color={
-                          isSelected
-                            ? "#10b981"
-                            : isDark
-                            ? "#fff"
-                            : "#111"
-                        }
-                        style={{ marginRight: 10 }}
-                      />
+                      {item.icon ? (
+                        <Ionicons
+                          name={item.icon}
+                          size={22}
+                          color={
+                            isSelected ? "#10b981" : darkMode === "light" ? "#111" : "#fff"
+                          }
+                          style={{ marginRight: 10 }}
+                        />
+                      ) : (
+                        <Text style={{ fontSize: 18, marginRight: 10 }}>
+                          {item.emoji}
+                        </Text>
+                      )}
                       <Text
                         style={[
                           styles.optionText,
                           {
-                            color: isSelected
-                              ? "#10b981"
-                              : isDark
-                              ? "#fff"
-                              : "#111",
+                            color: isSelected ? "#10b981" : darkMode === "light" ? "#111" : "#fff",
                           },
                         ]}
                       >
-                        {item.title}
+                        {highlightMatch(label, search)}
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -124,18 +167,19 @@ export default function DegreePicker({
         {/* STEP 2: Select Field */}
         {step === 2 && (
           <>
-            <TouchableOpacity
-              onPress={() => setStep(1)}
-              style={styles.backBtn}
-            >
+            <TouchableOpacity onPress={() => setStep(1)} style={styles.backBtn}>
               <Ionicons name="chevron-back" size={20} color="#10b981" />
               <Text style={styles.backText}>Back</Text>
             </TouchableOpacity>
 
             <Text
-              style={[styles.title, { color: isDark ? "#fff" : "#111" }]}
+              style={[
+                styles.title,
+                { color: darkMode === "light" ? "#111" : "#fff" },
+              ]}
             >
-              {tempDegree} — Choose Field
+              {tempDegree}
+               — {App_Language?.startsWith("ar") ? "اختر المجال" : "Select Field"}
             </Text>
 
             {/* Search */}
@@ -143,12 +187,12 @@ export default function DegreePicker({
               style={[
                 styles.searchInput,
                 {
-                  backgroundColor: isDark ? "#1a1a1a" : "#f3f3f3",
-                  color: isDark ? "#fff" : "#111",
+                  backgroundColor: darkMode === "light" ? "#f3f3f3" : "#1a1a1a",
+                  color: darkMode === "light" ? "#111" : "#fff",
                 },
               ]}
               placeholder="Search field..."
-              placeholderTextColor={isDark ? "#777" : "#777"}
+              placeholderTextColor={darkMode === "light" ? "#777" : "#777"}
               value={search}
               onChangeText={setSearch}
             />
@@ -156,36 +200,44 @@ export default function DegreePicker({
             <FlatList
               data={filteredFields}
               keyExtractor={(item) => item.name}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.option}
-                  onPress={() => handleFieldSelect(item.name)}
-                >
-                  <View style={styles.row}>
-                    {/* ICON OR EMOJI */}
-                    {item.icon ? (
-                      <item.icon
-                        size={20}
-                        color={isDark ? "#fff" : "#111"}
-                        style={{ marginRight: 10 }}
-                      />
-                    ) : (
-                      <Text style={{ fontSize: 18, marginRight: 10 }}>
-                        {item.emoji}
-                      </Text>
-                    )}
+              renderItem={({ item }) => {
+                const label = App_Language?.startsWith("ar") ? item.label?.ar ?? item.name : item.label?.en ?? item.name;
+                return (
+                  <TouchableOpacity
+                    style={[
+                      styles.option,
+                      tempField === item.name && {
+                        backgroundColor:
+                          darkMode === "light" ? "#d1fae5" : "#064e3b33",
+                      },
+                    ]}
+                    onPress={() => handleFieldSelect(item.name)}
+                  >
+                    <View style={styles.row}>
+                      {item.icon ? (
+                        <item.icon
+                          size={20}
+                          color={darkMode === "light" ? "#111" : "#fff"}
+                          style={{ marginRight: 10 }}
+                        />
+                      ) : (
+                        <Text style={{ fontSize: 18, marginRight: 10 }}>
+                          {item.emoji}
+                        </Text>
+                      )}
 
-                    <Text
-                      style={[
-                        styles.optionText,
-                        { color: isDark ? "#fff" : "#111" },
-                      ]}
-                    >
-                      {item.name}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              )}
+                      <Text
+                        style={[
+                          styles.optionText,
+                          { color: darkMode === "light" ? "#111" : "#fff" },
+                        ]}
+                      >
+                        {highlightMatch(label, search)}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              }}
             />
           </>
         )}
@@ -217,7 +269,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "700",
     textAlign: "center",
     marginBottom: 12,
@@ -242,5 +294,10 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     paddingBottom: 8,
   },
-  backText: { color: "#10b981", fontSize: 15, fontWeight: "600", marginLeft: 4 },
+  backText: {
+    color: "#10b981",
+    fontSize: 15,
+    fontWeight: "600",
+    marginLeft: 4,
+  },
 });

@@ -19,7 +19,6 @@ import WorkerCard from "@/src/components/WorkerCard";
 
 export default function Home() {
   const { Expo_Router, darkMode, location } = useAuth();
-  const isDark = darkMode === "dark";
 
   const [refreshing, setRefreshing] = useState(false);
   const [visibleCount, setVisibleCount] = useState(6);
@@ -45,15 +44,18 @@ export default function Home() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: isDark ? "#0a0a0a" : "#fefefe" }}
+      style={{ flex: 1, backgroundColor: darkMode === "light" ? "#fefefe" : "#0a0a0a" }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10b981" />}
     >
-      <Header isDark={isDark} onSearch={() => Expo_Router.push("/search")} />
+      <Header
+        isDark={darkMode === 'light' ? false : true}
+        onSearch={() => Expo_Router.push("/search")}
+      />
 
       <SectionTitle
         title="🔥 Suggested Experts"
         subtitle="AI-powered matches nearby"
-        isDark={isDark}
+        isDark={darkMode === 'light' ? false : true}
       />
 
       <FlatList
@@ -61,23 +63,35 @@ export default function Home() {
         horizontal
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <SuggestCard item={item} onPress={() => Expo_Router.push(`/worker/${item.id}`)} isDark={isDark} />
+          <SuggestCard 
+          item={item} 
+          onPress={() => Expo_Router.push(`/worker/${item.id}`)} 
+          isDark={darkMode === 'light' ? false : true} 
+          />
         )}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 6 }}
       />
 
-      <SectionTitle title="📍 Nearby Experts" isDark={isDark} />
+      <SectionTitle 
+      title="📍 Nearby Experts" 
+      isDark={darkMode === 'light' ? false : true} 
+      />
 
       <View style={{ paddingHorizontal: 16 }}>
         {visibleWorkers.map((item) => (
-          <WorkerCard key={item.id} item={item} onPress={() => Expo_Router.push(`/worker/${item.id}`)} isDark={isDark} />
+          <WorkerCard 
+          key={item.id}
+           item={item} 
+          onPress={() => Expo_Router.push(`/worker/${item.id}`)} 
+          isDark={darkMode === 'light' ? false : true}
+           />
         ))}
       </View>
 
       {visibleCount < sortedWorkers.length && (
         <TouchableOpacity
-          style={[styles.viewMore, { backgroundColor: isDark ? "#1b1b1b" : "#10b981" }]}
+          style={[styles.viewMore, { backgroundColor: darkMode === 'light' ? "#10b981" : "#1b1b1b" }]}
           onPress={() => {
             // if the next load exceeds maxLoadings, push the all search screen
             if (visibleCount + 6 > maxLoadings) {

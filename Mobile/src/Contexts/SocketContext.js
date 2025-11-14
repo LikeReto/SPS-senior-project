@@ -8,7 +8,8 @@ const SocketContext = createContext({});
 export const useSocket = () => useContext(SocketContext);
 
 export const SocketProvider = ({ children }) => {
-  const { currentUser, User_Status } = useAuth();
+  const { currentUser, User_Status, followedUsers } = useAuth();
+  // followedUsers = array of userIds the current user is "subscribed" to
 
   const socketRef = useRef(null);
   const [onlineUsers, setOnlineUsers] = useState(new Map()); // userId → status
@@ -16,7 +17,7 @@ export const SocketProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [dmChats, setDmChats] = useState([]);
 
-  /** ✅ Initialize socket connection */
+  /** Initialize socket connection */
   useEffect(() => {
     if (!currentUser?.$id) return;
 
@@ -29,46 +30,51 @@ export const SocketProvider = ({ children }) => {
 
     socketRef.current = socket;
 
+    // --- Connected ---
     socket.on("connect", () => {
       console.log("✅ [Socket.io] Connected:", socket.id);
+
       socket.emit("addUser", {
         User_$ID: currentUser.$id,
         User_Status: User_Status || "online",
       });
     });
 
+    // --- Disconnected ---
     socket.on("disconnect", (reason) => {
       console.log("❌ [Socket.io] Disconnected:", reason);
     });
 
-    /** 🟢 User came online */
+    // --- User Online ---
     socket.on("userOnline", ({ userId, status }) => {
       setOnlineUsers((prev) => {
         const updated = new Map(prev);
-        updated.set(userId, status || "online");
+        updated.set(userId, status); // ⭐ ALWAYS add ANY user
         return updated;
       });
     });
 
-    /** 🔴 User went offline */
+    // --- User Offline ---
     socket.on("userOffline", ({ userId }) => {
       setOnlineUsers((prev) => {
         const updated = new Map(prev);
-        updated.delete(userId);
+        updated.delete(userId); // ⭐ ALWAYS remove ANY user
         return updated;
       });
     });
 
-    /** 🟠 User changed status */
+    // --- User Status Changed ---
     socket.on("userStatusChanged", ({ userId, status }) => {
       setOnlineUsers((prev) => {
         const updated = new Map(prev);
-        if (updated.has(userId)) updated.set(userId, status);
+        if (updated.has(userId)) {
+          updated.set(userId, status);
+        }
         return updated;
       });
     });
 
-    /** 💬 Incoming message */
+    // --- Incoming Message ---
     socket.on("getMessage", (data) => {
       setArrivalMessage({
         sender: data.senderId,
@@ -86,9 +92,9 @@ export const SocketProvider = ({ children }) => {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [currentUser?.$id, User_Status]);
+  }, [currentUser?.$id, User_Status, followedUsers]);
 
-  /** ✉️ Send message */
+  // --- Send Message ---
   const sendMessageToServer = useCallback((messageData) => {
     const socket = socketRef.current;
     if (socket && socket.connected) {
@@ -96,27 +102,27 @@ export const SocketProvider = ({ children }) => {
     }
   }, []);
 
-  /** 🔄 Update status (manual trigger from UI) */
+  // --- Update Status ---
   const updateUserStatus = useCallback((status) => {
     const socket = socketRef.current;
     if (socket && socket.connected && currentUser?.$id) {
       socket.emit("updateStatus", { userId: currentUser.$id, status });
     }
-  }, [currentUser?.$id]);
+  }, [currentUser]);
 
-  /** 🧠 Check if user is online */
+  // --- Check if user is online ---
   const isUserOnline = useCallback(
     (userId) => onlineUsers.has(userId),
     [onlineUsers]
   );
 
-  /** 🧩 Get user status (online/busy/etc.) */
+  // --- Get user status ---
   const getUserStatus = useCallback(
     (userId) => onlineUsers.get(userId) || "offline",
     [onlineUsers]
   );
 
-  /** 🧹 Clear notifications */
+  // --- Clear notifications ---
   const clearNotifications = useCallback(() => setNotifications([]), []);
 
   return (

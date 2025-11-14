@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Text,
   Modal,
@@ -7,6 +7,8 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
+  TextInput,
+  View,
 } from "react-native";
 
 export default function SkillsModal({
@@ -16,10 +18,11 @@ export default function SkillsModal({
   selectedSkills,
   toggleSkill,
   darkMode,
+  App_Language, // add this prop
 }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
-  const isDark = darkMode === "dark";
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (visible) {
@@ -38,61 +41,113 @@ export default function SkillsModal({
     } else {
       fadeAnim.setValue(0);
       slideAnim.setValue(40);
+      setSearch("");
     }
   }, [visible]);
+
+  const filteredSkills = skills.filter((skill) => {
+    const label = App_Language?.startsWith("ar") ? skill.label.ar : skill.label.en;
+    return label.toLowerCase().includes(search.toLowerCase());
+  });
+
+  // Highlight matching letters in search
+  const highlightMatch = (text, query) => {
+    if (!query) return <Text>{text}</Text>;
+    const regex = new RegExp(`(${query})`, "i");
+    const parts = text.split(regex);
+    return (
+      <Text>
+        {parts.map((part, i) =>
+          regex.test(part) ? (
+            <Text key={i} style={{ backgroundColor: "#ffeb3b" }}>{part}</Text>
+          ) : (
+            <Text key={i}>{part}</Text>
+          )
+        )}
+      </Text>
+    );
+  };
 
   return (
     <Modal transparent visible={visible} animationType="none">
       <Pressable style={styles.overlay} onPress={onClose}>
-
         <Animated.View
           style={[
             styles.modalBox,
             {
-              backgroundColor: isDark ? "#1a1a1a" : "white",
+              backgroundColor: darkMode === "light" ? "#ffffff" : "#1a1a1a",
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
             },
           ]}
         >
-          <Text style={[styles.title, { color: isDark ? "#fff" : "#111" }]}>
-            Select Your Skills
+          <Text style={[styles.title, { color: darkMode === "light" ? "#111" : "#fff" }]}>
+            {App_Language?.startsWith("ar") ? "اختر مهاراتك" : "Select Your Skills"}
           </Text>
 
+          {/* Search Input */}
+          <TextInput
+            style={[
+              styles.searchInput,
+              {
+                backgroundColor: darkMode === "light" ? "#f3f3f3" : "#2a2a2a",
+                color: darkMode === "light" ? "#111" : "#fff",
+              },
+            ]}
+            placeholder={App_Language?.startsWith("ar") ? "ابحث عن مهارة..." : "Search skill..."}
+            placeholderTextColor={darkMode === "light" ? "#777" : "#aaa"}
+            value={search}
+            onChangeText={setSearch}
+          />
+
           <ScrollView style={{ maxHeight: 330 }}>
-            {skills.map((skill) => {
-              const active = selectedSkills.includes(skill);
+            {filteredSkills.map((skill) => {
+              const active = selectedSkills.includes(skill.name);
+              const label = App_Language?.startsWith("ar") ? skill.label.ar : skill.label.en;
 
               return (
                 <TouchableOpacity
-                  key={skill}
-                  onPress={() => toggleSkill(skill)}
+                  key={skill.name}
+                  onPress={() => toggleSkill(skill.name)}
                   style={[
                     styles.skillBtn,
                     {
                       backgroundColor: active
                         ? "#10b981"
-                        : isDark
-                        ? "#262626"
-                        : "#f2f2f2",
+                        : darkMode === "light"
+                        ? "#f5f5f5"
+                        : "#2a2a2a",
                     },
                   ]}
                 >
-                  <Text
-                    style={{
-                      color: active ? "white" : isDark ? "#fff" : "#111",
-                      fontWeight: active ? "700" : "500",
-                    }}
-                  >
-                    {skill}
-                  </Text>
+                  <View style={styles.row}>
+                    {skill.icon ? (
+                      <skill.icon
+                        size={18}
+                        color={active ? "white" : darkMode === "light" ? "#111" : "#fff"}
+                        style={{ marginRight: 10 }}
+                      />
+                    ) : (
+                      <Text style={{ fontSize: 18, marginRight: 10 }}>{skill.emoji}</Text>
+                    )}
+                    <Text
+                      style={{
+                        color: active ? "white" : darkMode === "light" ? "#111" : "#fff",
+                        fontWeight: active ? "700" : "500",
+                      }}
+                    >
+                      {highlightMatch(label, search)}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               );
             })}
           </ScrollView>
 
           <TouchableOpacity onPress={onClose} style={styles.doneBtn}>
-            <Text style={{ color: "white", fontWeight: "600" }}>Done</Text>
+            <Text style={{ color: "white", fontWeight: "600" }}>
+              {App_Language?.startsWith("ar") ? "تم" : "Done"}
+            </Text>
           </TouchableOpacity>
         </Animated.View>
       </Pressable>
@@ -116,8 +171,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "700",
-    marginBottom: 14,
+    marginBottom: 12,
     textAlign: "center",
+  },
+  searchInput: {
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 12,
   },
   skillBtn: {
     padding: 12,
@@ -131,4 +191,5 @@ const styles = StyleSheet.create({
     marginTop: 10,
     alignItems: "center",
   },
+  row: { flexDirection: "row", alignItems: "center" },
 });

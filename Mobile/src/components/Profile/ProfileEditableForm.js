@@ -18,6 +18,7 @@ import CountryPicker from "react-native-country-picker-modal";
 import DegreePicker from "@/src/components/Sheets/Degree-bottom-sheet";
 import SkillsBottomSheet from "@/src/components/Sheets/SkillsBottomSheet";
 import { useAuth } from "@/src/Contexts/AuthContext";
+import { skillsList } from "@/src/constants/Degrees_Fields";
 
 export default function ProfileEditableForm({
   onSave,
@@ -25,7 +26,6 @@ export default function ProfileEditableForm({
   onSkip,
 }) {
   const { App_Language, Expo_Router, darkMode, currentUser_Data } = useAuth();
-  const isDark = darkMode === "dark";
 
   const [UpdatingLoading, setUpdatingLoading] = useState(false);
   const [User_Name, setUser_Name] = useState(currentUser_Data?.User_Name || "");
@@ -44,14 +44,7 @@ export default function ProfileEditableForm({
   const [showDegreeModal, setShowDegreeModal] = useState(false);
   const [showSkillsModal, setShowSkillsModal] = useState(false);
 
-  const skillsList = [
-    "Programming",
-    "Web Design",
-    "Video Editing",
-    "Plumbing",
-    "Electrician",
-    "Carpentry",
-  ];
+
 
   const toggleSkill = (skill) => {
     setSelectedSkills((prev) =>
@@ -124,7 +117,7 @@ export default function ProfileEditableForm({
     <ScrollView
       style={{
         flex: 1,
-        backgroundColor: isDark ? "#0a0a0a" : "#f5f5f5"
+        backgroundColor: darkMode === "light" ? "#f5f5f5" : "#0a0a0a",
       }}
       contentContainerStyle={{ paddingBottom: 50 }}
     >
@@ -132,7 +125,7 @@ export default function ProfileEditableForm({
       {showSkip ? (
         <View style={{ flexDirection: "row", justifyContent: "flex-end", padding: 20 }}>
           <TouchableOpacity onPress={onSkip} style={styles.skipButton}>
-            <Text style={[styles.title, { color: isDark ? "white" : "#111" }]}>
+            <Text style={[styles.title, { color: darkMode === "light" ? "#111" : "white" }]}>
               {App_Language.startsWith("ar") ? "تخطى" : "Skip"}
             </Text>
           </TouchableOpacity>
@@ -141,10 +134,10 @@ export default function ProfileEditableForm({
         <View style={styles.header}>
           {Expo_Router.canGoBack() && (
             <TouchableOpacity onPress={() => Expo_Router.back()}>
-              <Ionicons name="arrow-back" size={28} color={isDark ? "white" : "#111"} />
+              <Ionicons name="arrow-back" size={28} color={darkMode === "light" ? "#111" : "white"} />
             </TouchableOpacity>
           )}
-          <Text style={[styles.title, { color: isDark ? "white" : "#111" }]}>
+          <Text style={[styles.title, { color: darkMode === "light" ? "#111" : "white" }]}>
             {App_Language.startsWith("ar") ? "تعديل الملف الشخصي" : "Edit Profile"}
           </Text>
         </View>
@@ -164,7 +157,7 @@ export default function ProfileEditableForm({
             <Ionicons
               name="person-circle-outline"
               size={100}
-              color={isDark ? "white" : "#555"}
+              color={darkMode === "light" ? "#555" : "white"}
             />
           )}
           <Text style={{ marginTop: 8, color: "#10b981", fontWeight: "600" }}>
@@ -175,15 +168,15 @@ export default function ProfileEditableForm({
 
       {/* Input fields */}
       <View style={styles.form}>
-        <Field label={App_Language.startsWith("ar") ? "الاسم" : "Name"} value={User_Name} setValue={setUser_Name} isDark={isDark} />
-        <Field label={App_Language.startsWith("ar") ? "اسم المستخدم" : "Username"} value={User_UserName} setValue={setUser_UserName} isDark={isDark} />
-        <Field label={App_Language.startsWith("ar") ? "المسمى الوظيفي" : "Job"} value={User_Job} setValue={setUser_Job} isDark={isDark} />
+        <Field label={App_Language.startsWith("ar") ? "الاسم" : "Name"} value={User_Name} setValue={setUser_Name} isDark={darkMode === "dark"} />
+        <Field label={App_Language.startsWith("ar") ? "اسم المستخدم" : "Username"} value={User_UserName} setValue={setUser_UserName} isDark={darkMode === "dark"} />
+        <Field label={App_Language.startsWith("ar") ? "المسمى الوظيفي" : "Job"} value={User_Job} setValue={setUser_Job} isDark={darkMode === "dark"} />
 
         {/* Phone with country picker */}
-        <Text style={[styles.label, { color: isDark ? "white" : "#111" }]}>
+        <Text style={[styles.label, { color: darkMode === "dark" ? "white" : "#111" }]}>
           {App_Language.startsWith("ar") ? "رقم الهاتف" : "Phone"}
         </Text>
-        <View style={[styles.phoneContainer, { backgroundColor: isDark ? "#1a1a1a" : "#fff" }]}>
+        <View style={[styles.phoneContainer, { backgroundColor: darkMode === "dark" ? "#1a1a1a" : "#fff" }]}>
           <CountryPicker
             countryCode={countryCode}
             withFlag
@@ -194,11 +187,11 @@ export default function ProfileEditableForm({
               setCallingCode(country.callingCode[0]);
             }}
           />
-          <Text style={{ color: isDark ? "white" : "#111" }}>
+          <Text style={{ color: darkMode === "dark" ? "white" : "#111" }}>
             +{callingCode}
           </Text>
           <TextInput
-            style={[styles.input, { flex: 1, backgroundColor: "transparent", color: isDark ? "white" : "#111" }]}
+            style={[styles.input, { flex: 1, backgroundColor: "transparent", color: darkMode === "dark" ? "white" : "#111" }]}
             value={User_PhoneNumber}
             onChangeText={setUser_PhoneNumber}
             placeholder="Phone Number"
@@ -208,14 +201,14 @@ export default function ProfileEditableForm({
         </View>
 
         {/* Degree Picker */}
-        <Text style={[styles.label, { color: isDark ? "white" : "#111" }]}>
+        <Text style={[styles.label, { color: darkMode === "dark" ? "white" : "#111" }]}>
           {App_Language.startsWith("ar") ? "الدرجة العلمية" : "Degree"}
         </Text>
         <TouchableOpacity
-          style={[styles.input, { backgroundColor: isDark ? "#1a1a1a" : "#fff" }]}
+          style={[styles.input, { backgroundColor: darkMode === "dark" ? "#1a1a1a" : "#fff" }]}
           onPress={() => setShowDegreeModal(true)}
         >
-          <Text style={{ color: isDark ? "white" : "#111" }}>
+          <Text style={{ color: darkMode === "dark" ? "white" : "#111" }}>
             {User_Degree || (App_Language.startsWith("ar") ? "اختر الدرجة العلمية" : "Select Degree")}
           </Text>
         </TouchableOpacity>
@@ -226,20 +219,83 @@ export default function ProfileEditableForm({
           onSelect={(deg) => setUser_Degree(deg)}
           selected={User_Degree}
           darkMode={darkMode}
+          App_Language={App_Language}
         />
 
         {/* Skills Picker */}
-        <Text style={[styles.label, { color: isDark ? "white" : "#111" }]}>
+        <Text style={[styles.label, { color: darkMode === "dark" ? "white" : "#111" }]}>
           {App_Language.startsWith("ar") ? "المهارات" : "Skills"}
         </Text>
+
+        <ScrollView
+          style={{ maxHeight: 120 }}
+          showsVerticalScrollIndicator={true}
+          contentContainerStyle={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            alignItems: "center"
+          }}
+        >
         <TouchableOpacity
-          style={[styles.input, { backgroundColor: isDark ? "#1a1a1a" : "#fff" }]}
+          style={[
+            styles.input,
+            {
+              backgroundColor: darkMode === "dark" ? "#1a1a1a" : "#fff",
+              minHeight: 50,
+              paddingVertical: 8,
+              paddingHorizontal: 10,
+              flexDirection: "row",
+              flexWrap: "wrap",
+              alignItems: "center",
+            },
+          ]}
           onPress={() => setShowSkillsModal(true)}
         >
-          <Text style={{ color: isDark ? "white" : "#111" }}>
-            {selectedSkills.length > 0 ? selectedSkills.join(", ") : "Select Skills"}
-          </Text>
+          {selectedSkills.length > 0 ? (
+              selectedSkills.map((skillName) => {
+                const skill = skillsList.find((s) => s.name === skillName);
+                const label = App_Language.startsWith("ar") ? skill?.label?.ar || skillName : skill?.label?.en || skillName;
+
+                return (
+                  <View
+                    key={skillName}
+                    style={[
+                      styles.skillTag,
+                      {
+                        backgroundColor: darkMode === "dark" ? "#292828FF" : "#e6f9f0",
+                        marginRight: 6,
+                        marginBottom: 6,
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        borderRadius: 12,
+                        flexDirection: "row",
+                        alignItems: "center",
+                      },
+                    ]}
+                  >
+                    {skill?.icon ? (
+                      <skill.icon
+                        size={14}
+                        color={darkMode === "dark" ? "#fff" : "#10b981"}
+                        style={{ marginRight: 4 }}
+                      />
+                    ) : skill?.emoji ? (
+                      <Text style={{ fontSize: 14, marginRight: 4 }}>{skill.emoji}</Text>
+                    ) : null}
+
+                    <Text style={{ color: darkMode === "dark" ? "#fff" : "#10b981", fontSize: 14 }}>
+                      {label}
+                    </Text>
+                  </View>
+                );
+              })
+          ) : (
+            <Text style={{ color: darkMode === "dark" ? "#aaa" : "#888" }}>
+              {App_Language.startsWith("ar") ? "اختر المهارات" : "Select Skills"}
+            </Text>
+          )}
         </TouchableOpacity>
+        </ScrollView>
 
         <SkillsBottomSheet
           visible={showSkillsModal}
@@ -248,6 +304,7 @@ export default function ProfileEditableForm({
           selectedSkills={selectedSkills}
           toggleSkill={toggleSkill}
           darkMode={darkMode}
+          App_Language={App_Language}
         />
 
         {/* Save button */}
@@ -289,7 +346,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: "700",
   },
   imageContainer: {

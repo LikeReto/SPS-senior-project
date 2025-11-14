@@ -13,7 +13,6 @@ import { useAuth } from "@/src/Contexts/AuthContext";
 
 export default function LoginScreen() {
     const { Expo_Router, App_Language, darkMode, loginUser } = useAuth();
-    const isDark = darkMode === "dark";
 
     const initialValues = { email: "", password: "" };
 
@@ -33,7 +32,7 @@ export default function LoginScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container(darkMode)}>
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={"padding"}
@@ -41,7 +40,7 @@ export default function LoginScreen() {
                 <TouchableOpacity
                     onPress={() => Expo_Router.replace("/")}
                 >
-                    <Ionicons name="arrow-back" size={28} color={isDark ? "white" : "#111"} />
+                    <Ionicons name="arrow-back" size={28} color={darkMode === "light" ? "#111" : "white"} />
                 </TouchableOpacity>
 
                 <ScrollView
@@ -55,7 +54,7 @@ export default function LoginScreen() {
                     >
                         {({ handleChange, handleBlur, handleSubmit, values, isValid }) => (
                             <View>
-                                <Animated.Text entering={FadeInUp} style={styles.title}>
+                                <Animated.Text entering={FadeInUp} style={styles.title(darkMode)}>
                                     {App_Language.startsWith("ar")
                                         ? "مرحبًا بعودتك 👋"
                                         : "Welcome Back 👋"
@@ -63,7 +62,7 @@ export default function LoginScreen() {
                                 </Animated.Text>
 
                                 <TextInput
-                                    placeholderTextColor={isDark ? "#888" : "#555"}
+                                    placeholderTextColor={darkMode === "light" ? "#555555" : "#888888"}
                                     placeholder={App_Language.startsWith("ar")
                                         ? "البريد الإلكتروني"
                                         : "Email"}
@@ -76,7 +75,7 @@ export default function LoginScreen() {
                                     style={styles.input(darkMode)}
                                 />
                                 <TextInput
-                                    placeholderTextColor={isDark ? "#888" : "#555"}
+                                    placeholderTextColor={darkMode === "light" ? "#555555" : "#888888"}
                                     placeholder={App_Language.startsWith("ar")
                                         ? "كلمة المرور"
                                         : "Password"}
@@ -117,22 +116,22 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
+    container: (darkMode) => ({
         flex: 1,
         justifyContent: 'space-around',
         paddingHorizontal: 25,
-        backgroundColor: "#000"
-    },
-    title: {
+        backgroundColor: darkMode === "light" ? "#f5f5f5" : "#0a0a0a",
+    }),
+    title: (darkMode) => ({
         fontSize: 36,
         fontWeight: "800",
-        color: "#fff",
+        color: darkMode === "light" ? "#111" : "#fff",
         marginBottom: 30
-    },
+    }),
     input: (darkMode) => ({
-        color: darkMode === "dark" ? "#fff" : "#111",
+        color: darkMode === "light" ? "#111" : "#fff",
         fontSize: 16,
-        backgroundColor: "#111",
+        backgroundColor: darkMode === "light" ? "#f0f0f0" : "#1a1a1a",
         padding: 16,
         borderRadius: 16,
         marginVertical: 8

@@ -10,7 +10,6 @@ export default function ChatScreen() {
   const { id } = useLocalSearchParams();
   const { Expo_Router, currentUser, darkMode } = useAuth();
   const { socket, dmChats, sendMessageToServer } = useSocket();
-  const isDark = darkMode === "dark";
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -62,7 +61,7 @@ export default function ChatScreen() {
     const isMe = item.senderId === currentUser._id;
     return (
       <View style={[styles.messageContainer, isMe ? styles.me : styles.them]}>
-        <Text style={{ color: isMe ? "white" : isDark ? "#fff" : "#111" }}>{item.text}</Text>
+        <Text style={{ color: isMe ? "white" : darkMode === "light" ? "#111111" : "#ffffff" }}>{item.text}</Text>
         <Text style={{ fontSize: 10, color: isMe ? "#eee" : "#666", marginTop: 2 }}>
           {new Date(item.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </Text>
@@ -72,16 +71,16 @@ export default function ChatScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: isDark ? "#0a0a0a" : "#f5f5f5" }}
+      style={{ flex: 1, backgroundColor: darkMode === "light" ? "#f5f5f5" : "#0a0a0a" }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: isDark ? "#111" : "#fff" }]}>
+      <View style={[styles.header, { backgroundColor: darkMode === "light" ? "#fff" : "#111" }]}>
         <TouchableOpacity onPress={() => Expo_Router.back()}>
           <Ionicons name="arrow-back" size={26} color="#10b981" />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: isDark ? "white" : "#111" }]}>Chat #{id}</Text>
+        <Text style={[styles.title, { color: darkMode === "light" ? "#111" : "white" }]}>Chat #{id}</Text>
         <View style={{ width: 26 }} />
       </View>
 
@@ -97,13 +96,13 @@ export default function ChatScreen() {
       />
 
       {/* Input Bar */}
-      <View style={[styles.inputBar, { backgroundColor: isDark ? "#111" : "#fff" }]}>
+      <View style={[styles.inputBar, { backgroundColor: darkMode === "light" ? "#fff" : "#111" }]}>
         <TextInput
           value={input}
           onChangeText={setInput}
           placeholder="Message..."
-          placeholderTextColor={isDark ? "#aaa" : "#666"}
-          style={[styles.input, { color: isDark ? "white" : "#111", backgroundColor: isDark ? "#1a1a1a" : "#eee" }]}
+          placeholderTextColor={darkMode === "light" ? "#666" : "#aaa"}
+          style={[styles.input, { color: darkMode === "light" ? "#111" : "white", backgroundColor: darkMode === "light" ? "#eee" : "#1a1a1a" }]}
         />
         <TouchableOpacity onPress={handleSend} style={styles.sendBtn}>
           <Ionicons name="send" size={22} color="#fff" />

@@ -9,7 +9,6 @@ import LanguageModal from "@/src/components/Settings/modals/LanguageModal";
 
 export default function ContentDisplaySection() {
     const { darkMode, toggleDarkMode, changeLanguage, App_Language } = useAuth();
-    const isDark = darkMode === "dark";
 
     const [DarkMode_ModalVisible, setDarkMode_ModalVisible] = useState(false);
     const [language_ModalVisible, setLanguage_ModalVisible] = useState(false);
@@ -35,27 +34,27 @@ export default function ContentDisplaySection() {
 
     return (
         <>
-            <SectionTitle title={t.title} isDark={isDark} />
+            <SectionTitle title={t.title} isDark={darkMode === "light" ? false : true} />
 
             {/* Notifications */}
             <SettingsCard
                 label={t.notifications}
                 icon={<Ionicons name="notifications-outline" size={22} color="#10b981" />}
-                isDark={isDark}
+                isDark={darkMode === "light" ? false : true}
             />
 
             {/* Activity Center */}
             <SettingsCard
                 label={t.activity}
                 icon={<MaterialCommunityIcons name="chart-bar" size={22} color="#10b981" />}
-                isDark={isDark}
+                isDark={darkMode === "light" ? false : true}
             />
 
             {/* Ads */}
             <SettingsCard
                 label={t.ads}
                 icon={<Feather name="monitor" size={22} color="#10b981" />}
-                isDark={isDark}
+                isDark={darkMode === "light" ? false : true}
             />
 
             {/* Language */}
@@ -63,7 +62,7 @@ export default function ContentDisplaySection() {
                 <SettingsCard
                     label={t.language}
                     icon={<Ionicons name="language-outline" size={22} color="#10b981" />}
-                    isDark={isDark}
+                    isDark={darkMode === "light" ? false : true}
                 />
             </TouchableOpacity>
 
@@ -72,7 +71,7 @@ export default function ContentDisplaySection() {
                 <SettingsCard
                     label={t.darkMode}
                     icon={<Ionicons name="moon-outline" size={22} color="#10b981" />}
-                    isDark={isDark}
+                    isDark={darkMode === "light" ? false : true}
                 />
             </TouchableOpacity>
 
@@ -81,7 +80,7 @@ export default function ContentDisplaySection() {
                 visible={DarkMode_ModalVisible}
                 onClose={() => setDarkMode_ModalVisible(false)}
                 App_Language={App_Language}
-                isDark={isDark}
+                isDark={darkMode === "light" ? false : true}
                 toggleDarkMode={toggleDarkMode}
             />
 
@@ -89,7 +88,7 @@ export default function ContentDisplaySection() {
             <LanguageModal
                 visible={language_ModalVisible}
                 onClose={() => setLanguage_ModalVisible(false)}
-                isDark={isDark}
+                isDark={darkMode === "light" ? false : true}
                 changeLanguage={changeLanguage}
                 App_Language={App_Language}
             />

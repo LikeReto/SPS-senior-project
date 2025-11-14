@@ -6,7 +6,6 @@ import { SettingsCard } from "../SettingsCard";
 
 export default function SupportAboutSection() {
   const { darkMode, App_Language } = useAuth();
-  const isDark = darkMode === "dark";
 
   const t = App_Language?.startsWith("ar")
     ? {
@@ -24,7 +23,7 @@ export default function SupportAboutSection() {
 
   return (
     <>
-      <SectionTitle title={t.title} isDark={isDark} />
+      <SectionTitle title={t.title} isDark={darkMode === "light" ? false : true} />
 
       {/* Report a Problem */}
       <SettingsCard
@@ -36,7 +35,7 @@ export default function SupportAboutSection() {
             color="#10b981"
           />
         }
-        isDark={isDark}
+        isDark={darkMode === "light" ? false : true}
       />
 
       {/* Support */}
@@ -49,7 +48,7 @@ export default function SupportAboutSection() {
             color="#10b981"
           />
         }
-        isDark={isDark}
+        isDark={darkMode === "light" ? false : true}
       />
 
       {/* Terms & Policies */}
@@ -62,7 +61,7 @@ export default function SupportAboutSection() {
             color="#10b981"
           />
         }
-        isDark={isDark}
+        isDark={darkMode === "light" ? false : true}
       />
     </>
   );

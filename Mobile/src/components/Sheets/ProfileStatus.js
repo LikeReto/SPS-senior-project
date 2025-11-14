@@ -17,10 +17,10 @@ export default function StatusModal({
   currentStatus,
   onSelectStatus,
   darkMode,
+  App_Language,
 }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
-  const isDark = darkMode === "dark";
 
   useEffect(() => {
     if (visible) {
@@ -43,10 +43,10 @@ export default function StatusModal({
   }, [visible]);
 
   const statuses = [
-    { label: "Online", value: "online", color: "#10b981" },
-    { label: "Busy", value: "busy", color: "#FFAA00" },
-    { label: "Do Not Disturb", value: "do not disturb", color: "#FF0000" },
-    { label: "Offline", value: "offline", color: "#888" },
+    { label: App_Language?.startsWith("ar") ? "متصل" : "Online", value: "online", color: "#10b981" },
+    { label: App_Language?.startsWith("ar") ? "مشغول" : "Busy", value: "busy", color: "#FFAA00" },
+    { label: App_Language?.startsWith("ar") ? "عدم الإزعاج" : "Do Not Disturb", value: "do not disturb", color: "#FF0000" },
+    { label: App_Language?.startsWith("ar") ? "غير متصل" : "Offline", value: "offline", color: "#888" },
   ];
 
   return (
@@ -56,14 +56,16 @@ export default function StatusModal({
           style={[
             styles.modalBox,
             {
-              backgroundColor: isDark ? "#1a1a1a" : "white",
+              backgroundColor: darkMode === "light" ? "#ffffff" : "#1a1a1a",
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
             },
           ]}
         >
-          <Text style={[styles.title, { color: isDark ? "#fff" : "#111" }]}>
-            Select Your Status
+          <Text style={[styles.title, { color: darkMode === "light" ? "#111" : "#fff" }]}>
+            {App_Language?.startsWith("ar") 
+            ? "اختر حالتك"
+            : "Select Your Status"}
           </Text>
 
           <ScrollView style={{ maxHeight: 330 }}>
@@ -79,9 +81,9 @@ export default function StatusModal({
                     {
                       backgroundColor: active
                         ? status.color + "33" // light tint of the status color
-                        : isDark
-                        ? "#262626"
-                        : "#f2f2f2",
+                        : darkMode === "light"
+                          ? "#f5f5f5"
+                          : "#2a2a2a",
                       borderWidth: active ? 1.2 : 0,
                       borderColor: active ? status.color : "transparent",
                     },
@@ -96,7 +98,7 @@ export default function StatusModal({
                     />
                     <Text
                       style={{
-                        color: isDark ? "#fff" : "#111",
+                        color: darkMode === "light" ? "#111" : "#fff",
                         fontWeight: active ? "700" : "500",
                       }}
                     >
@@ -117,7 +119,9 @@ export default function StatusModal({
           </ScrollView>
 
           <TouchableOpacity onPress={onClose} style={styles.doneBtn}>
-            <Text style={{ color: "white", fontWeight: "600" }}>Done</Text>
+            <Text style={{ color: "white", fontWeight: "600" }}>
+              {App_Language?.startsWith("ar") ? "تم" : "Done"}
+            </Text>
           </TouchableOpacity>
         </Animated.View>
       </Pressable>

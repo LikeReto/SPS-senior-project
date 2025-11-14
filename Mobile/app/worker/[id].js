@@ -8,7 +8,6 @@ import { useState } from "react";
 
 export default function WorkerScreen() {
   const { Expo_Router, darkMode, currentUser } = useAuth();
-  const isDark = darkMode === "dark";
 
   const { id } = useLocalSearchParams();
   const worker = workers.find((w) => w.id === id);
@@ -17,8 +16,8 @@ export default function WorkerScreen() {
 
   if (!worker) {
     return (
-      <View style={[styles.container, { backgroundColor: isDark ? "#0a0a0a" : "#f5f5f5" }]}>
-        <Text style={{ color: isDark ? "white" : "#111", fontSize: 18, textAlign: "center", marginTop: 100 }}>
+      <View style={[styles.container, { backgroundColor: darkMode === "light" ? "#f5f5f5" : "#0a0a0a"}]}>
+        <Text style={{ color: darkMode === "light" ? "#111" : "white", fontSize: 18, textAlign: "center", marginTop: 100 }}>
           Worker not found
         </Text>
       </View>
@@ -58,35 +57,35 @@ export default function WorkerScreen() {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: isDark ? "#0a0a0a" : "#f5f5f5" }]}>
+    <ScrollView style={[styles.container, { backgroundColor: darkMode === "light" ? "#f5f5f5" : "#0a0a0a"}]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => Expo_Router.back()}>
-          <Ionicons name="arrow-back" size={28} color={isDark ? "white" : "#111"} />
+          <Ionicons name="arrow-back" size={28} color={darkMode === "light" ? "#111" : "white"} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: isDark ? "white" : "#111" }]}>{worker.User_Name}</Text>
+        <Text style={[styles.title, { color: darkMode === "light" ? "#111" : "white" }]}>{worker.User_Name}</Text>
       </View>
 
       {/* Profile Card */}
-      <View style={[styles.profileCard, { backgroundColor: isDark ? "#1a1a1a" : "#fff" }]}>
+      <View style={[styles.profileCard, { backgroundColor: darkMode === "light" ? "#fff" : "#1a1a1a" }]}>
         <Image source={{ uri: worker.image }} style={styles.image} />
-        <Text style={[styles.name, { color: isDark ? "white" : "#111" }]}>{worker.User_Name}</Text>
-        <Text style={[styles.job, { color: isDark ? "#10b981" : "#00a36c" }]}>{worker.User_Job}</Text>
-        <Text style={{ color: isDark ? "white" : "#111", marginTop: 2 }}>{degree}</Text>
-        <Text style={{ color: isDark ? "#aaa" : "#555", marginTop: 2 }}>
+        <Text style={[styles.name, { color: darkMode === "light" ? "#111" : "white" }]}>{worker.User_Name}</Text>
+        <Text style={[styles.job, { color: darkMode === "light" ? "#00a36c" : "#10b981" }]}>{worker.User_Job}</Text>
+        <Text style={{ color: darkMode === "light" ? "#111" : "white", marginTop: 2 }}>{degree}</Text>
+        <Text style={{ color: darkMode === "light" ? "#555" : "#aaa", marginTop: 2 }}>
           {worker.freelancer ? "Freelancer" : "Employee"}
         </Text>
 
         <View style={styles.infoRow}>
           <Ionicons name="call" size={20} color={phoneVisible ? "#10b981" : "#555"} />
-          <Text style={{ marginLeft: 6, color: isDark ? "white" : "#111" }}>
+          <Text style={{ marginLeft: 6, color: darkMode === "light" ? "#111" : "white" }}>
             {phoneVisible ? worker.phone : "Hidden"}
           </Text>
         </View>
 
         <View style={styles.infoRow}>
           <Ionicons name="star" size={20} color="#FFD700" />
-          <Text style={{ marginLeft: 6, color: isDark ? "white" : "#111" }}>
+          <Text style={{ marginLeft: 6, color: darkMode === "light" ? "#111" : "white" }}>
             {worker.rating?.toFixed(1) || "0.0"}
           </Text>
         </View>
@@ -105,17 +104,17 @@ export default function WorkerScreen() {
 
       {/* Skills */}
       <View style={{ marginHorizontal: 20, marginTop: 20 }}>
-        <Text style={{ fontSize: 18, fontWeight: "700", color: isDark ? "white" : "#111" }}>Skills</Text>
+        <Text style={{ fontSize: 18, fontWeight: "700", color: darkMode === "light" ? "#111" : "white" }}>Skills</Text>
         <View style={styles.skills}>
           {skills.length === 0 ? (
-            <Text style={{ color: isDark ? "#aaa" : "#555", marginTop: 6 }}>No skills listed</Text>
+            <Text style={{ color: darkMode === "light" ? "#555" : "#aaa", marginTop: 6 }}>No skills listed</Text>
           ) : (
             skills.map((skill, index) => (
               <View
                 key={index}
-                style={[styles.skillTag, { backgroundColor: isDark ? "#0f0f0f" : "#e6f9f0" }]}
+                style={[styles.skillTag, { backgroundColor: darkMode === "light" ? "#e6f9f0" : "#0f0f0f" }]}
               >
-                <Text style={{ color: isDark ? "white" : "#10b981" }}>{skill}</Text>
+                <Text style={{ color: darkMode === "light" ? "#10b981" : "white" }}>{skill}</Text>
               </View>
             ))
           )}
