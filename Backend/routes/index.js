@@ -41,8 +41,9 @@ const routeGroups = [
         folder: "Chats",
         files: [
             "create_new_Conversation",
-            "fetch_ALL_Conversations",
-            "fetch_CHAT_Messages",
+            "getMessages",
+            "getConversations",
+            "sendMessage",
         ]
     },
     {

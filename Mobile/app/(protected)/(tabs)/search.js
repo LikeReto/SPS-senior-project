@@ -28,7 +28,7 @@ const getDistance = (lat1, lon1, lat2, lon2) => {
 };
 
 export default function Search() {
-  const { Expo_Router, currentUser, darkMode, Providers, location } = useAuth();
+  const { Expo_Router, currentUser, darkMode, Providers, location, App_Language } = useAuth();
   const { getUserStatus } = useSocket();
 
   const [query, setQuery] = useState("");
@@ -93,6 +93,7 @@ export default function Search() {
           isCurrentUser={item.User_$ID === currentUser?.$id}
           isDark={darkMode !== "light"}
           userStatus={userStatus}
+          App_Language={App_Language}
         />
       );
     },

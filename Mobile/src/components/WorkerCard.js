@@ -8,15 +8,15 @@ function WorkerCard({ item, onPress, App_Language, isDark, isCurrentUser, userSt
   const statusLabel = useMemo(() => {
     switch (userStatus) {
       case "online":
-        return App_Language.startsWith("ar") ? "متصل" : "Online";
+        return App_Language?.startsWith("ar") ? "متصل" : "Online";
       case "busy":
-        return App_Language.startsWith("ar") ? "مشغول" : "Busy";
+        return App_Language?.startsWith("ar") ? "مشغول" : "Busy";
       case "away":
-        return App_Language.startsWith("ar") ? "بعيد" : "Away";
+        return App_Language?.startsWith("ar") ? "بعيد" : "Away";
       case "do not disturb":
-        return App_Language.startsWith("ar") ? "عدم الإزعاج" : "Do Not Disturb";
+        return App_Language?.startsWith("ar") ? "عدم الإزعاج" : "Do Not Disturb";
       default:
-        return App_Language.startsWith("ar") ? "غير متصل" : "Offline";
+        return App_Language?.startsWith("ar") ? "غير متصل" : "Offline";
     }
   }, [userStatus, App_Language]);
   // ⭐ Status color helper
@@ -47,7 +47,7 @@ function WorkerCard({ item, onPress, App_Language, isDark, isCurrentUser, userSt
   const imageUri =
     item?.User_Profile_Picture && item.User_Profile_Picture !== ""
       ? item.User_Profile_Picture
-      : "https://via.placeholder.com/60";
+      : 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
 
   // ⭐ SKILLS PREVIEW
   const skills =

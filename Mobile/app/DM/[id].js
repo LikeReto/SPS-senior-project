@@ -1,69 +1,92 @@
-// app/(protected)/dm/[id].js
-import React, { useState, useEffect, useRef } from "react";
-import { View, Text, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+// app/(protected)/dm/DMChatScreen.js
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Image } from "expo-image";
+import { View, Text, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
 import { useAuth } from "@/src/Contexts/AuthContext";
-import { useSocket } from "@/src/Contexts/SocketContext";
 
 export default function ChatScreen() {
-  const { id } = useLocalSearchParams();
   const { Expo_Router, currentUser, darkMode } = useAuth();
-  const { socket, dmChats, sendMessageToServer } = useSocket();
 
-  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
   const flatListRef = useRef(null);
 
-  // Load chat messages if already in dmChats
-  useEffect(() => {
-    const chat = dmChats?.find(c => c.chatId === id);
-    if (chat?.messages) setMessages(chat.messages);
-  }, [dmChats, id]);
+  // --- Fake chat info ---
+  const fakeChat = {
+    chatId: "fake123",
+    senderId: "user2_id",
+    senderName: "John Doe",
+    senderImage: "https://i.pravatar.cc/150?img=5",
+  };
 
-  // Listen to incoming messages from socket
-  useEffect(() => {
-    if (!socket) return;
+  // --- Fake messages for demo ---
+  const [messages, setMessages] = useState([
+    {
+      id: "m1",
+      text: "Hey there!",
+      senderId: fakeChat.senderId,
+      receiverId: "me",
+      senderName: fakeChat.senderName,
+      senderImage: fakeChat.senderImage,
+      type: "text",
+      createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+    },
+    {
+      id: "m2",
+      text: "Hello! How are you?",
+      senderId: "me",
+      receiverId: fakeChat.senderId,
+      senderName: currentUser.User_Name,
+      senderImage: currentUser.User_Profile_Picture,
+      type: "text",
+      createdAt: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
+    },
+    {
+      id: "m3",
+      text: "All good. You?",
+      senderId: fakeChat.senderId,
+      receiverId: "me",
+      senderName: fakeChat.senderName,
+      senderImage: fakeChat.senderImage,
+      type: "text",
+      createdAt: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+    },
+  ]);
 
-    const handleNewMessage = (msg) => {
-      if (msg.chatId === id) {
-        setMessages(prev => [...prev, msg]);
-        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50);
-      }
-    };
+  const scrollToEnd = useCallback(() => {
+    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50);
+  }, []);
 
-    socket.on("newMessage", handleNewMessage);
-    return () => socket.off("newMessage", handleNewMessage);
-  }, [socket, id]);
+  useEffect(scrollToEnd, [messages]);
 
+  // --- Send message handler ---
   const handleSend = () => {
     if (!input.trim()) return;
 
     const newMsg = {
-      id: Date.now(),
-      chatId: id,
+      id: `m${messages.length + 1}`,
       text: input.trim(),
-      senderId: currentUser._id,
+      senderId: "me",
+      receiverId: fakeChat.senderId,
       senderName: currentUser.User_Name,
       senderImage: currentUser.User_Profile_Picture,
-      time: new Date().toISOString(),
+      type: "text",
+      createdAt: new Date().toISOString(),
     };
 
-    // Optimistic update
     setMessages(prev => [...prev, newMsg]);
-    sendMessageToServer(newMsg); // send to backend via Socket
     setInput("");
-
-    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50);
+    scrollToEnd();
   };
 
   const renderItem = ({ item }) => {
-    const isMe = item.senderId === currentUser._id;
+    const isMe = item.senderId === "me";
     return (
       <View style={[styles.messageContainer, isMe ? styles.me : styles.them]}>
-        <Text style={{ color: isMe ? "white" : darkMode === "light" ? "#111111" : "#ffffff" }}>{item.text}</Text>
+        <Text style={{ color: isMe ? "#fff" : darkMode === "light" ? "#111" : "#fff" }}>{item.text}</Text>
         <Text style={{ fontSize: 10, color: isMe ? "#eee" : "#666", marginTop: 2 }}>
-          {new Date(item.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          {new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </Text>
       </View>
     );
@@ -80,7 +103,12 @@ export default function ChatScreen() {
         <TouchableOpacity onPress={() => Expo_Router.back()}>
           <Ionicons name="arrow-back" size={26} color="#10b981" />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: darkMode === "light" ? "#111" : "white" }]}>Chat #{id}</Text>
+        <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+          <Image source={{ uri: fakeChat.senderImage }} style={{ width: 32, height: 32, borderRadius: 16, marginRight: 8 }} />
+          <Text style={{ fontSize: 18, fontWeight: "700", color: darkMode === "light" ? "#111" : "#fff" }}>
+            {fakeChat.senderName}
+          </Text>
+        </View>
         <View style={{ width: 26 }} />
       </View>
 
@@ -89,10 +117,10 @@ export default function ChatScreen() {
         ref={flatListRef}
         data={messages}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 12, paddingBottom: 90 }}
         showsVerticalScrollIndicator={false}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        onContentSizeChange={scrollToEnd}
       />
 
       {/* Input Bar */}
@@ -102,10 +130,10 @@ export default function ChatScreen() {
           onChangeText={setInput}
           placeholder="Message..."
           placeholderTextColor={darkMode === "light" ? "#666" : "#aaa"}
-          style={[styles.input, { color: darkMode === "light" ? "#111" : "white", backgroundColor: darkMode === "light" ? "#eee" : "#1a1a1a" }]}
+          style={[styles.input, { color: darkMode === "light" ? "#111" : "#fff", backgroundColor: darkMode === "light" ? "#eee" : "#1a1a1a" }]}
         />
         <TouchableOpacity onPress={handleSend} style={styles.sendBtn}>
-          <Ionicons name="send" size={22} color="#fff" />
+          {loading ? <ActivityIndicator color="white" /> : <Ionicons name="send" size={22} color="#fff" />}
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -113,32 +141,11 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    height: 60,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    elevation: 4,
-  },
-  title: { fontSize: 18, fontWeight: "700" },
-  messageContainer: {
-    padding: 10,
-    borderRadius: 12,
-    maxWidth: "75%",
-    marginVertical: 6,
-  },
+  header: { height: 60, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", elevation: 4 },
+  messageContainer: { padding: 10, borderRadius: 12, maxWidth: "75%", marginVertical: 6 },
   me: { backgroundColor: "#10b981", alignSelf: "flex-end" },
   them: { backgroundColor: "#d1f7e1", alignSelf: "flex-start" },
-  inputBar: {
-    flexDirection: "row",
-    padding: 10,
-    borderTopWidth: 0.3,
-    borderColor: "#444",
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
-  },
+  inputBar: { flexDirection: "row", padding: 10, borderTopWidth: 0.3, borderColor: "#444", position: "absolute", bottom: 0, width: "100%" },
   input: { flex: 1, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, fontSize: 15 },
   sendBtn: { backgroundColor: "#10b981", width: 42, height: 42, borderRadius: 21, justifyContent: "center", alignItems: "center", marginLeft: 8 },
 });

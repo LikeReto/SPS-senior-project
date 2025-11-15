@@ -1,35 +1,25 @@
-import { useState, useMemo, useEffect } from "react";
+import { useMemo, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
-import axios from "axios";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { useUser2Store } from '@/src/hooks/CurrentPage_States/useGlobal_States';
-
 import { useAuth } from "@/src/Contexts/AuthContext";
 
 export default function WorkerScreen() {
   const { Expo_Router, darkMode, currentUser } = useAuth();
   const { id } = useLocalSearchParams();
-
   const user2Data = useUser2Store((state) => state.user2);
 
+  const worker = useMemo(() => user2Data || {}, [user2Data]);
 
   useEffect(() => {
     return () => {
-      // This runs when the user navigates away from the game page
       useUser2Store.getState().clearUser2();
-      console.log("Cleared User2 from store");
     };
   }, []);
 
-  // Use passed ProviderData if available, fallback to empty object
-  const worker = useMemo(() => user2Data || {},
-    [user2Data]);
-
-  const [loading, setLoading] = useState(false);
-
-  if (!worker || !worker.User_Name) {
+  if (!worker || !worker?.User_Name) {
     return (
       <View style={[styles.container, { backgroundColor: darkMode === "light" ? "#f5f5f5" : "#0a0a0a" }]}>
         <Text style={[styles.notFoundText, { color: darkMode === "light" ? "#111" : "white" }]}>
@@ -43,32 +33,23 @@ export default function WorkerScreen() {
   const degree = worker.degree || "High School";
   const phoneVisible = worker.phoneHidden !== true;
 
-  const handleChatRequest = async () => {
-    if (!currentUser) return Alert.alert("Error", "You must be logged in to start a chat.");
+  // ⭐ SAFE IMAGE
+  const imageUri =
+    worker?.User_Profile_Picture && worker?.User_Profile_Picture !== ""
+      ? worker?.User_Profile_Picture
+      : 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
 
-    setLoading(true);
-    try {
-      const response = await axios.post(`${process.env.EXPO_PUBLIC_APP_API}/api/sps/create_new_Conversation`, {
-        participants: [currentUser._id, worker.User_$ID || worker.id],
-      });
+  const goToChat = async () => {
+    if (!currentUser) return alert("You must be logged in");
 
-      const conversation = response.data;
-
-      if (conversation.status === "pending") {
-        Alert.alert("Request Sent", "Your chat request has been sent. Wait for the worker to accept.");
-      } else if (conversation.status === "accepted") {
-        Expo_Router.push(`/dm/${conversation._id}`);
-      }
-    } catch (err) {
-      console.error(err);
-      Alert.alert("Error", "Failed to send chat request.");
-    } finally {
-      setLoading(false);
-    }
+    await useUser2Store.getState().setUser2(worker);
+    // ✔ New rule → just go to chat screen
+    Expo_Router.push(`/DM/${worker.User_$ID}`);
   };
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: darkMode === "light" ? "#f5f5f5" : "#0a0a0a" }]}>
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => Expo_Router.back()}>
@@ -79,7 +60,7 @@ export default function WorkerScreen() {
 
       {/* Profile Card */}
       <View style={[styles.profileCard, { backgroundColor: darkMode === "light" ? "#fff" : "#1a1a1a" }]}>
-        <Image source={{ uri: worker.image }} style={styles.image} />
+        <Image source={{ uri: imageUri }} style={styles.image} />
         <Text style={[styles.name, { color: darkMode === "light" ? "#111" : "white" }]}>{worker.User_Name}</Text>
         <Text style={[styles.job, { color: darkMode === "light" ? "#00a36c" : "#10b981" }]}>{worker.User_Job}</Text>
         <Text style={[styles.degree, { color: darkMode === "light" ? "#111" : "white" }]}>{degree}</Text>
@@ -101,12 +82,9 @@ export default function WorkerScreen() {
           </Text>
         </View>
 
-        <TouchableOpacity
-          style={[styles.chatBtn, { backgroundColor: loading ? "#6ee7b7" : "#10b981" }]}
-          onPress={handleChatRequest}
-          disabled={loading}
-        >
-          <Text style={styles.chatBtnText}>{loading ? "Sending..." : "Chat"}</Text>
+        {/* ⭐ NEW CLEAN CHAT BUTTON */}
+        <TouchableOpacity style={styles.chatBtn} onPress={goToChat}>
+          <Text style={styles.chatBtnText}>Chat</Text>
         </TouchableOpacity>
       </View>
 
@@ -128,11 +106,11 @@ export default function WorkerScreen() {
           )}
         </View>
       </View>
+
     </ScrollView>
   );
 }
 
-// ======= STYLES =======
 const styles = StyleSheet.create({
   container: { flex: 1 },
   notFoundText: { fontSize: 18, textAlign: "center", marginTop: 100 },
@@ -158,7 +136,13 @@ const styles = StyleSheet.create({
   infoRow: { flexDirection: "row", alignItems: "center", marginTop: 8 },
   infoText: { marginLeft: 6 },
 
-  chatBtn: { marginTop: 20, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 12 },
+  chatBtn: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    backgroundColor: "#10b981",
+  },
   chatBtnText: { color: "white", fontWeight: "700" },
 
   skillsContainer: { marginHorizontal: 20, marginTop: 20 },

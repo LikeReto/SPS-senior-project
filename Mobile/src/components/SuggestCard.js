@@ -27,7 +27,7 @@ function SuggestCard({ item, onPress, isDark, isCurrentUser, userStatus }) {
   const imageUri =
     item?.User_Profile_Picture && item.User_Profile_Picture !== ""
       ? item.User_Profile_Picture
-      : "https://via.placeholder.com/80";
+      : 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
 
   // ⭐ SKILLS PREVIEW
   const skills =

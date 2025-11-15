@@ -2,6 +2,15 @@ const mongoose = require("mongoose");
 
 const ConversationSchema = new mongoose.Schema(
   {
+    ConversationType: {
+      type: String,
+      enum: ["direct", "group"],
+      default: "direct",
+    },
+    ConversationTitle: {
+      type: String,
+      default: "",
+    },
     participants: [
       {
         type: mongoose.Schema.Types.ObjectId,
