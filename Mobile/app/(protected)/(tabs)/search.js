@@ -1,188 +1,229 @@
-import { Ionicons } from "@expo/vector-icons";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  View,
+  TextInput,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
 } from "react-native";
-
-import WorkerListCard from "@/src/components/WorkerListCard";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/src/Contexts/AuthContext";
-import workers from "@/src/data/workers";
-
-import * as Animatable from "react-native-animatable";
-
+import WorkerCard from "@/src/components/WorkerCard";
+import { useUser2Store } from "@/src/hooks/CurrentPage_States/useGlobal_States";
+import { useSocket } from "@/src/Contexts/SocketContext";
 
 // Distance calculation
-function getDistance(lat1, lon1, lat2, lon2) {
-    const toRad = (value) => (value * Math.PI) / 180;
-    const R = 6371;
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-}
+const getDistance = (lat1, lon1, lat2, lon2) => {
+  const toRad = (value) => (value * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
 
 export default function Search() {
-    const { Expo_Router, darkMode, location } = useAuth();
+  const { Expo_Router, currentUser, darkMode, Providers, location } = useAuth();
+  const { getUserStatus } = useSocket();
 
-    const [query, setQuery] = useState("");
-    const [sortBy, setSortBy] = useState("nearest");
+  const [query, setQuery] = useState("");
+  const [sortBy, setSortBy] = useState("nearest");
+  const [visibleCount, setVisibleCount] = useState(6); // initially show 6
+  const increment = 6;
 
-    // Workers with distance
-    const workersWithDistance = useMemo(() => {
-        let w = workers.map((worker) => ({
-            ...worker,
-            distance: location
-                ? getDistance(location.latitude, location.longitude, worker.latitude, worker.longitude)
-                : null,
-        }));
+  const handleProfilePress = useCallback(async (provider) => {
+    try {
+      if (provider?.User_$ID === currentUser?.$id) {
+        Expo_Router.push("/myProfile");
+      } else {
+        await useUser2Store.getState().setUser2(provider);
+        Expo_Router.push(`/worker/${provider.User_$ID}`);
+      }
+    } catch (error) {
+      console.log("Error handling profile press:", error);
+    }
+  }, [currentUser, Expo_Router]);
 
-        if (query) {
-            w = w.filter(
-                (worker) =>
-                    worker.User_Name.toLowerCase().includes(query.toLowerCase()) ||
-                    worker.User_Job.toLowerCase().includes(query.toLowerCase())
-            );
-        } else {
-            // top 50 nearest or top-rated
-            if (sortBy === "nearest") w.sort((a, b) => (a.distance || 0) - (b.distance || 0));
-            else if (sortBy === "top") w.sort((a, b) => b.rating - a.rating);
-            w = w.slice(0, 50);
-        }
+  // Filter & sort workers safely
+  const filteredWorkers = useMemo(() => {
+    if (!Providers || !Array.isArray(Providers)) return [];
 
-        return w;
-    }, [query, sortBy, location]);
+    let workers = Providers.map((w) => ({
+      ...w,
+      distance: location
+        ? getDistance(location.latitude, location.longitude, w.latitude, w.longitude)
+        : null,
+      rating: Number(w?.User_Rating) || 0,
+    }));
 
-    const topSuggestions = useMemo(() => {
-        if (query) return [];
-        let s = [...workersWithDistance].slice(0, 10);
-        return s;
-    }, [workersWithDistance, query]);
+    if (query) {
+      workers = workers.filter(
+        (w) =>
+          (w.User_Name || "").toLowerCase().includes(query.toLowerCase()) ||
+          (w.User_Job || "").toLowerCase().includes(query.toLowerCase())
+      );
+    }
 
+    if (!query) {
+      if (sortBy === "nearest") workers.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+      else if (sortBy === "top") workers.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    }
+
+    return workers.slice(0, visibleCount);
+  }, [Providers, query, sortBy, location, visibleCount]);
+
+  const loadMoreWorkers = useCallback(() => {
+    if (visibleCount < Providers.length) {
+      setVisibleCount((prev) => Math.min(prev + increment, Providers.length));
+    }
+  }, [visibleCount, Providers]);
+
+  const renderWorker = useCallback(
+    ({ item }) => {
+      const userStatus = getUserStatus(item?.User_$ID);
+      return (
+        <WorkerCard
+          item={item}
+          onPress={() => handleProfilePress(item)}
+          isCurrentUser={item.User_$ID === currentUser?.$id}
+          isDark={darkMode !== "light"}
+          userStatus={userStatus}
+        />
+      );
+    },
+    [currentUser, darkMode, getUserStatus, handleProfilePress]
+  );
+
+  if (!Providers) {
     return (
-        <View style={[styles.container, { backgroundColor: darkMode === 'light' ? "#f5f5f5" : "#0a0a0a" }]}
-            >
-            {/* Search bar */}
-            <View style={styles.header}>
-                <Animatable.View
-                    animation="bounceIn"
-                    duration={500}
-                    easing="ease-out"
-                    style={styles.backButtonContainer}
-                >
-                    <TouchableOpacity
-                        onPress={() => Expo_Router.back()}
-                        activeOpacity={0.7}
-                        style={styles.backButton}
-                    >
-                        <Ionicons name="arrow-back" size={24} color={darkMode === 'light' ? "#111" : "white"} />
-                    </TouchableOpacity>
-                </Animatable.View>
-
-                <TextInput
-                    value={query}
-                    onChangeText={setQuery}
-                    placeholder="Search workers..."
-                    placeholderTextColor={darkMode === 'light' ? "#888" : "#aaa"}
-                    style={[
-                        styles.searchInput,
-                        { backgroundColor: darkMode === 'light' ? "#fff" : "#1f1f1f", color: darkMode === 'light' ? "#111" : "white" },
-                    ]}
-                />
-
-                <TouchableOpacity onPress={() => setQuery("")} style={styles.clearButton}>
-                    <Ionicons name="close" size={20} color={darkMode === 'light' ? "#111" : "white"} />
-                </TouchableOpacity>
-            </View>
-
-            {/* Filters */}
-            <View style={styles.filters}>
-                <TouchableOpacity
-                    onPress={() => setSortBy("nearest")}
-                    style={[
-                        styles.filterButton,
-                        { backgroundColor: sortBy === "nearest" ? "#10b981" : darkMode === 'light' ? "#e6f9f0" : "#1f1f1f" },
-                    ]}
-                >
-                    <Text style={{ color: sortBy === "nearest" ? "#fff" : darkMode === 'light' ? "#111" : "white" }}>Nearest</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    onPress={() => setSortBy("top")}
-                    style={[
-                        styles.filterButton,
-                        { backgroundColor: sortBy === "top" ? "#10b981" : darkMode === 'light' ? "#e6f9f0" : "#1f1f1f" },
-                    ]}
-                >
-                    <Text style={{ color: sortBy === "top" ? "#fff" : darkMode === 'light' ? "#111" : "white" }}>Top Rated</Text>
-                </TouchableOpacity>
-            </View>
-
-            {/* Entire content scrollable */}
-            <ScrollView showsVerticalScrollIndicator={false}>
-
-                {/* Vertical workers list */}
-                {workersWithDistance.map((worker) => (
-                    <WorkerListCard
-                        key={worker.id}
-                        worker={worker}
-                        onPress={() => Expo_Router.push(`/worker/${worker.id}`)}
-                        isDark={darkMode === 'light' ? false : true}
-                    />
-                ))}
-            </ScrollView>
-        </View>
+      <View
+        style={[
+          styles.loadingContainer,
+          { backgroundColor: darkMode === "light" ? "#f5f5f5" : "#0a0a0a" },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#10b981" />
+      </View>
     );
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: darkMode === "light" ? "#f5f5f5" : "#0a0a0a" }]}>
+      {/* Search Bar */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => Expo_Router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color={darkMode === "light" ? "#111" : "#fff"} />
+        </TouchableOpacity>
+
+        <TextInput
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Search workers..."
+          placeholderTextColor={darkMode === "light" ? "#888" : "#aaa"}
+          style={[
+            styles.searchInput,
+            { backgroundColor: darkMode === "light" ? "#fff" : "#1f1f1f", color: darkMode === "light" ? "#111" : "#fff" },
+          ]}
+        />
+
+        {query ? (
+          <TouchableOpacity onPress={() => setQuery("")} style={styles.clearButton}>
+            <Ionicons name="close" size={20} color={darkMode === "light" ? "#111" : "#fff"} />
+          </TouchableOpacity>
+        ) : null}
+      </View>
+
+      {/* Filters */}
+      <View style={styles.filters}>
+        <TouchableOpacity
+          onPress={() => setSortBy("nearest")}
+          style={[
+            styles.filterButton,
+            { backgroundColor: sortBy === "nearest" ? "#10b981" : darkMode === "light" ? "#e6f9f0" : "#1f1f1f" },
+          ]}
+        >
+          <Text style={{ color: sortBy === "nearest" ? "#fff" : darkMode === "light" ? "#111" : "#fff" }}>Nearest</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => setSortBy("top")}
+          style={[
+            styles.filterButton,
+            { backgroundColor: sortBy === "top" ? "#10b981" : darkMode === "light" ? "#e6f9f0" : "#1f1f1f" },
+          ]}
+        >
+          <Text style={{ color: sortBy === "top" ? "#fff" : darkMode === "light" ? "#111" : "#fff" }}>Top Rated</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Workers List */}
+      <FlatList
+        data={filteredWorkers}
+        keyExtractor={(item) => item.User_$ID}
+        renderItem={renderWorker}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        onEndReached={loadMoreWorkers}
+        onEndReachedThreshold={0.5}
+      />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1
-    },
-    header: {
-        flexDirection: "row",
-        margin: 16,
-        alignItems: "center"
-    },
-    backButtonContainer: {
-        marginRight: 8,
-        borderRadius: 12,
-        overflow: "hidden",
-    },
+  container: {
+    flex: 1,
+  },
 
-    backButton: {
-        padding: 8,
-        borderRadius: 12,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    searchInput: {
-        flex: 1,
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        fontSize: 16
-    },
-    clearButton: {
-        marginLeft: 8
-    },
-    filters: {
-        flexDirection: "row",
-        marginHorizontal: 16,
-        marginBottom: 10
-    },
-    filterButton: {
-        paddingHorizontal: 16,
-        paddingVertical: 6,
-        borderRadius: 20,
-        marginRight: 10,
-        alignItems: "center",
-        justifyContent: "center"
-    },
+  // Header & Search Bar
+  header: {
+    flexDirection: "row",
+    marginHorizontal: 16,
+    marginVertical: 10,
+    alignItems: "center",
+  },
+  backButton: {
+    padding: 8,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  searchInput: {
+    flex: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  clearButton: {
+    marginLeft: 8,
+  },
+
+  // Filters
+  filters: {
+    flexDirection: "row",
+    marginHorizontal: 16,
+    marginBottom: 10,
+  },
+  filterButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginRight: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  // Loading
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });

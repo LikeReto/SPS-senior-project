@@ -13,8 +13,8 @@ export default function MyProfileCard({
 }) {
     return (
         <View style={[styles.profileCard, { backgroundColor: isDark ? "#1a1a1a" : "#fff" }]}>
-            {currentUser_Data && currentUser_Data.image ? (
-                <Image source={{ uri: currentUser_Data?.image }} style={styles.image} />
+            {currentUser_Data && currentUser_Data.User_Profile_Picture ? (
+                <Image source={{ uri: currentUser_Data?.User_Profile_Picture }} style={styles.image} />
             ) : (
                 <Ionicons
                     name="person-circle-outline"

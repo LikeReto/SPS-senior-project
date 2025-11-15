@@ -47,9 +47,9 @@ const routeGroups = [
     },
     {
         path: "/api/sps",
-        folder: "xOHTERS",
+        folder: "USERS",
         files: [
-            "fetch_ALL_Users",
+            "get_Workers",
         ]
     }
 ];

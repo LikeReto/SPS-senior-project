@@ -11,7 +11,7 @@ router.get("/", (request, response) => {
 router.post("/", async (request, response) => {
     try {
         const userInfo = request.body;
-        console.log(userInfo)
+
         // check username and password
         const checkResult = await check_username_password(userInfo);
         if (!checkResult.success) {

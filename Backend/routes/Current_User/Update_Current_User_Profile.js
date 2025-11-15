@@ -17,7 +17,7 @@ router.post("/", async (request, response) => {
 
         // First, update user info in Appwrite
         const appwriteUpdateResult = await update_Current_User_AppWrite(updatedUserInfo);
-        if (!appwriteUpdateResult) {
+        if (!appwriteUpdateResult.success) {
             return response.status(500).json({ errorMessage: "Failed to update user in Appwrite." });
         }
         // Find the user in MongoDB by _id and update their profile
@@ -35,7 +35,7 @@ router.post("/", async (request, response) => {
                 User_PhoneNumber: updatedUserInfo.User_PhoneNumber,
                 User_CountryCode: updatedUserInfo.User_CountryCode,
                 User_CallingCode: updatedUserInfo.User_CallingCode,
-                User_Profile_Picture: updatedUserInfo.User_Profile_Picture,
+                User_Profile_Picture: appwriteUpdateResult.updatedData.profileURL,
                 onBoarded_finished: updatedUserInfo.onBoarded_finished,
                 User_Skills: updatedUserInfo.User_Skills,
                 User_Projects: updatedUserInfo.User_Projects,

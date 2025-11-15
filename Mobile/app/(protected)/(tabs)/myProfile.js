@@ -26,6 +26,7 @@ export default function MyProfileScreen() {
     currentUser_Data,
     User_Status,
     setUser_Status,
+    refreshCurrentUserData,
   } = useAuth();
 
   const { isUserOnline, getUserStatus, updateUserStatus } = useSocket();
@@ -45,9 +46,9 @@ export default function MyProfileScreen() {
   };
   
   // Refresh
-  const handleRefresh = () => {
+  const handleRefresh = async() => {
     try {
-      Expo_Router.reload();
+      await refreshCurrentUserData();
     }
     catch (error) {
       console.log("Error refreshing profile:", error);

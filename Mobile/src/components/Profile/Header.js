@@ -40,7 +40,7 @@ export default function MyProfileHeader({
 
     // ⭐ Status color
     const getStatusColor = () => {
-        if (!userOnline) return "#FF0080FFغ";
+        if (!userOnline) return "#888888";
 
         switch (liveStatus) {
             case "online":

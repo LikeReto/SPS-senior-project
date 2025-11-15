@@ -34,12 +34,15 @@ import {
     backendRegisterUser
 } from "@/src/api/CurrentUser/Get_Login_register_User";
 
+import {
+    backendGetWorkersData
+} from "@/src/api/USERS/Workers";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const Expo_Router = useRouter();
-    const pathname = usePathname(); 
+    const pathname = usePathname();
 
     const { App_Language, changeLanguage } = useLanguage();
     const { darkMode, toggleDarkMode } = useDarkMode();
@@ -50,6 +53,8 @@ export const AuthProvider = ({ children }) => {
 
     const [App_Loading, setApp_Loading] = useState(true);
 
+    // fake workers data
+    const [Providers, setProviders] = useState([]);
 
 
     const [location, setLocation] = useState(null);
@@ -83,6 +88,8 @@ export const AuthProvider = ({ children }) => {
                 let loc = await Location.getCurrentPositionAsync({});
                 setLocation(loc.coords);
             }
+
+            await fetchWorkersData();
 
         }
         catch (error) {
@@ -177,6 +184,32 @@ export const AuthProvider = ({ children }) => {
             setTimeout(() => {
                 setApp_Loading(false);
             }, 1500);
+        }
+    };
+
+    //🙍🏻‍♂️ refresh current user data
+    const refreshCurrentUserData = async () => {
+        try {
+            if (currentUser) {
+                // get the user data from backend
+                const getData_post = {
+                    User_$ID: currentUser.$id,
+                    email: currentUser.email,
+                }
+                const userDataResponse = await backendGetCurrentUserData(getData_post);
+                if (userDataResponse && userDataResponse.success === true) {
+                    setCurrentUser_Data(userDataResponse.userData);
+                }
+            }
+            else {
+                Alert.alert(App_Language.startsWith("ar")
+                    ? "سجل دخول."
+                    : "Please log in."
+                );
+            }
+        }
+        catch (error) {
+            console.error("❌ AuthContext ~> Error in refreshCurrentUserData:", error.message);
         }
     };
 
@@ -311,6 +344,21 @@ export const AuthProvider = ({ children }) => {
     };
 
 
+    // USERS functions can be added here
+    const fetchWorkersData = async () => {
+        try {
+            const workersResponse = await backendGetWorkersData();
+            if (workersResponse && workersResponse.success === true) {
+                setProviders(workersResponse.workersData);
+                return true;
+            }
+        }
+        catch (error) {
+            console.error("❌ AuthContext ~> Error in fetchWorkersData:", error.message);
+            return false;
+        }
+    }
+
 
 
     const contextData = {
@@ -336,6 +384,11 @@ export const AuthProvider = ({ children }) => {
         LocalStorage_Values,
         UpdateLocalStorage,
         updateUserProfile,
+        refreshCurrentUserData,
+
+        // Workers Data
+        Providers,
+        fetchWorkersData,
 
         // Authentication
         loginUser,

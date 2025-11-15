@@ -86,7 +86,8 @@ const create_New_User_AppWrite = async (userInfo) => {
 
 //🚀 Update current user
 const update_Current_User_AppWrite = async (updateInfo) => {
-    try {
+
+    async function updatingInfo() {
         if (updateInfo.User_Name) {
             await USERS.updateName({
                 userId: updateInfo.User_$ID,
@@ -111,7 +112,7 @@ const update_Current_User_AppWrite = async (updateInfo) => {
             await USERS.updatePhone({
                 userId: updateInfo.User_$ID,
                 number: `+${updateInfo.User_CallingCode}${updateInfo.User_PhoneNumber}`,
-                
+
             });
             console.log(`📞 Updated phone number to: +${updateInfo.User_CallingCode}${updateInfo.User_PhoneNumber}`);
 
@@ -127,8 +128,33 @@ const update_Current_User_AppWrite = async (updateInfo) => {
             });
             console.log(`🔒 Updated password for user ID: ${updateInfo.User_$ID}`);
         }
+        if (updateInfo.profilePictureFile) {
+            // Upload profile picture to Appwrite Storage
+            await STORAGE.createFile(
+                // bucketId
+                {
+                    bucketId: process.env.AppWrite_Project_ProfilePictures_STORAGE_BucketID,
+                    fileId: updateInfo.User_$ID,
+                    file: updateInfo.profilePictureFile,
+                    permissions: ['read("any")'],
+                }
+            )
+        }
+        return {
+            profileURL: updateInfo.profilePictureFile ? await STORAGE.getFileView({
+                bucketId: process.env.AppWrite_Project_ProfilePictures_STORAGE_BucketID,
+                fileId: updateInfo.User_$ID,
+            }) : null
 
-        return true;
+        }
+    }
+    try {
+        const result = await updatingInfo();
+
+        return {
+            success: true,
+            updatedData: result
+        };
     }
     catch (error) {
         console.error(`❌ hooks/xAppwrite/Appwrite ~> Error: ${error.message || error}`);

@@ -1,11 +1,64 @@
-import React from "react";
+import React, { memo, useMemo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function WorkerCard({ item, onPress, isDark }) {
-  const fullStars = Math.floor(item.rating);
-  const halfStar = item.rating % 1 >= 0.5 ? 1 : 0;
+function WorkerCard({ item, onPress, App_Language, isDark, isCurrentUser, userStatus }) {
+
+  // ⭐ Status label helper
+  const statusLabel = useMemo(() => {
+    switch (userStatus) {
+      case "online":
+        return App_Language.startsWith("ar") ? "متصل" : "Online";
+      case "busy":
+        return App_Language.startsWith("ar") ? "مشغول" : "Busy";
+      case "away":
+        return App_Language.startsWith("ar") ? "بعيد" : "Away";
+      case "do not disturb":
+        return App_Language.startsWith("ar") ? "عدم الإزعاج" : "Do Not Disturb";
+      default:
+        return App_Language.startsWith("ar") ? "غير متصل" : "Offline";
+    }
+  }, [userStatus, App_Language]);
+  // ⭐ Status color helper
+  const statusColor = useMemo(() => {
+    switch (userStatus) {
+      case "online":
+        return "#10b981"; // green
+      case "busy":
+      case "away":
+        return "#FFAA00"; // yellow
+      case "do not disturb":
+        return "#FF0000"; // red
+      default:
+        return "#888"; // offline / unknown
+    }
+  }, [userStatus]);
+
+  if (!item) return null;
+
+
+  // ⭐ SAFE RATING
+  const rating = Number(item?.User_Rating) || 0;
+  const fullStars = Math.floor(rating);
+  const halfStar = rating % 1 >= 0.5 ? 1 : 0;
   const emptyStars = 5 - fullStars - halfStar;
+
+  // ⭐ SAFE IMAGE
+  const imageUri =
+    item?.User_Profile_Picture && item.User_Profile_Picture !== ""
+      ? item.User_Profile_Picture
+      : "https://via.placeholder.com/60";
+
+  // ⭐ SKILLS PREVIEW
+  const skills =
+    Array.isArray(item?.User_Skills) && item.User_Skills.length > 0
+      ? item.User_Skills.slice(0, 3).join(" • ")
+      : null;
+
+  // ⭐ REVIEWS COUNT
+  const reviewsCount = Array.isArray(item?.User_Reviews)
+    ? item.User_Reviews.length
+    : 0;
 
   return (
     <TouchableOpacity
@@ -13,35 +66,69 @@ export default function WorkerCard({ item, onPress, isDark }) {
         styles.card,
         {
           backgroundColor: isDark ? "#1a1a1a" : "#fff",
+          borderColor: isCurrentUser ? "#10b981" : "#BB1313FF",
           shadowColor: isDark ? "#000" : "#10b981",
         },
       ]}
       onPress={onPress}
+      activeOpacity={0.9}
     >
       <View style={styles.row}>
-        <Image source={{ uri: item.image }} style={styles.image} />
+        <Image source={{ uri: imageUri }} style={styles.image} />
+
+        {/* STATUS DOT */}
+        <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+
         <View style={styles.info}>
-          <Text style={[styles.name, { color: isDark ? "white" : "#111" }]}>
-            {item.User_Name}
-          </Text>
-          <Text style={[styles.job, { color: isDark ? "#10b981" : "#00a36c" }]}>
-            {item.User_Job}
+          {/* NAME */}
+          <Text style={[styles.name, { color: isDark ? "#fff" : "#111" }]}>
+            {item?.User_Name}
           </Text>
 
+          {/* STATUS LABEL */}
+          <Text style={[styles.statusText, { color: statusColor }]}>
+            {statusLabel || "offline"}
+          </Text>
+
+          {/* JOB */}
+          <Text style={[styles.job, { color: isDark ? "#10b981" : "#00a36c" }]}>
+            {item?.User_Job || "Freelancer"}
+          </Text>
+
+          {/* FREELANCER BADGE */}
+          {item?.User_Freelancer && (
+            <Text style={styles.freelancerBadge}>⭐ Verified Freelancer</Text>
+          )}
+
+          {/* SKILLS */}
+          {skills && (
+            <Text
+              style={[styles.skills, { color: isDark ? "#bbb" : "#666" }]}
+              numberOfLines={1}
+            >
+              {skills}
+            </Text>
+          )}
+
+          {/* RATING */}
           <View style={styles.ratingContainer}>
             {[...Array(fullStars)].map((_, i) => (
               <Ionicons key={"full" + i} name="star" size={16} color="#FFD700" />
             ))}
-            {halfStar === 1 && <Ionicons name="star-half" size={16} color="#FFD700" />}
+            {halfStar === 1 && (
+              <Ionicons name="star-half" size={16} color="#FFD700" />
+            )}
             {[...Array(emptyStars)].map((_, i) => (
               <Ionicons key={"empty" + i} name="star-outline" size={16} color="#FFD700" />
             ))}
+
             <Text style={[styles.ratingText, { color: isDark ? "#aaa" : "#555" }]}>
-              {item.rating.toFixed(1)}
+              {rating.toFixed(1)} ({reviewsCount})
             </Text>
           </View>
 
-          {item.distance && (
+          {/* DISTANCE */}
+          {item?.distance !== undefined && (
             <Text style={[styles.distance, { color: isDark ? "#aaa" : "#555" }]}>
               {item.distance.toFixed(1)} km away
             </Text>
@@ -51,6 +138,8 @@ export default function WorkerCard({ item, onPress, isDark }) {
     </TouchableOpacity>
   );
 }
+
+export default memo(WorkerCard);
 
 const styles = StyleSheet.create({
   card: {
@@ -65,9 +154,31 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: "row", alignItems: "center" },
   image: { width: 60, height: 60, borderRadius: 30, marginRight: 12 },
+  statusDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    position: "absolute",
+    top: 48,
+    left: 48,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
   info: { flex: 1, flexDirection: "column" },
   name: { fontSize: 16, fontWeight: "600" },
+  statusText: { fontSize: 12, fontWeight: "500", marginTop: 2 },
   job: { fontSize: 14, marginTop: 2 },
+  freelancerBadge: {
+    marginTop: 2,
+    fontSize: 12,
+    color: "#10b981",
+    fontWeight: "600",
+  },
+  skills: {
+    marginTop: 4,
+    fontSize: 12,
+    maxWidth: "90%",
+  },
   ratingContainer: { flexDirection: "row", alignItems: "center", marginTop: 6 },
   ratingText: { marginLeft: 4, fontSize: 12 },
   distance: { marginTop: 4, fontSize: 12 },

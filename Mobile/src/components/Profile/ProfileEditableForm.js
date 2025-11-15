@@ -7,18 +7,18 @@ import {
   Image,
   StyleSheet,
   Alert,
-  Platform,
   ScrollView,
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
 import CountryPicker from "react-native-country-picker-modal";
 
 import DegreePicker from "@/src/components/Sheets/Degree-bottom-sheet";
 import SkillsBottomSheet from "@/src/components/Sheets/SkillsBottomSheet";
 import { useAuth } from "@/src/Contexts/AuthContext";
 import { skillsList } from "@/src/constants/Degrees_Fields";
+import useImagePicker from "@/src/hooks/CurrentUser/useImagePicker";
+import { fixUploaded_File } from "@/src/utils/fixUploaded_File";
 
 export default function ProfileEditableForm({
   onSave,
@@ -45,6 +45,8 @@ export default function ProfileEditableForm({
   const [showSkillsModal, setShowSkillsModal] = useState(false);
 
 
+  const { pickImage } = useImagePicker();
+
 
   const toggleSkill = (skill) => {
     setSelectedSkills((prev) =>
@@ -52,42 +54,19 @@ export default function ProfileEditableForm({
     );
   };
 
-  const pickImage = async () => {
-    try {
-      const { status } =
-        Platform.OS !== "web"
-          ? await ImagePicker.requestMediaLibraryPermissionsAsync()
-          : { status: "granted" };
 
-      if (status !== "granted") {
-        Alert.alert("Permission Denied", "We need access to your photos!");
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-
-      if (!result.canceled) {
-        setUser_Profile_Picture(result.assets[0].uri);
-      }
-    } catch (error) {
-      Alert.alert("Error", "Failed to pick an image.");
-      console.error("❌ Image Picker Error:", error);
-    }
-  };
-
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!User_Name || !User_Job || !User_Degree || !User_UserName) {
       Alert.alert("Validation Error", "Name, Username, Job, and Degree are required!");
       return;
     }
+    let fixed_ProfilePicture_response = ''
 
     try {
       setUpdatingLoading(true);
+      if (User_Profile_Picture && User_Profile_Picture?.uri?.length > 0) {
+        fixed_ProfilePicture_response = await fixUploaded_File(User_Profile_Picture);
+      }
       const updatedData = {
         showSkip: showSkip,
         _id: currentUser_Data?._id,
@@ -98,7 +77,7 @@ export default function ProfileEditableForm({
         User_CountryCode: countryCode,
         User_CallingCode: callingCode,
         User_Degree,
-        User_Profile_Picture,
+        User_Profile_Picture: fixed_ProfilePicture_response.length > 0 ? fixed_ProfilePicture_response : User_Profile_Picture,
         User_Skills: selectedSkills,
         onBoarded_finished: true,
       };
@@ -150,7 +129,17 @@ export default function ProfileEditableForm({
           justifyContent: "center",
         }}
       >
-        <TouchableOpacity onPress={pickImage} style={styles.imageContainer}>
+        <TouchableOpacity onPress={async () => {
+          const pick_image_response = await pickImage({ multiple: false, allowVideo: false });
+          if (pick_image_response) {
+            setUser_Profile_Picture(pick_image_response);
+          }
+          else {
+            console.log("❌ No image selected");
+          }
+        }}
+          style={styles.imageContainer}
+        >
           {User_Profile_Picture ? (
             <Image source={{ uri: User_Profile_Picture }} style={styles.image} />
           ) : (
@@ -236,22 +225,22 @@ export default function ProfileEditableForm({
             alignItems: "center"
           }}
         >
-        <TouchableOpacity
-          style={[
-            styles.input,
-            {
-              backgroundColor: darkMode === "dark" ? "#1a1a1a" : "#fff",
-              minHeight: 50,
-              paddingVertical: 8,
-              paddingHorizontal: 10,
-              flexDirection: "row",
-              flexWrap: "wrap",
-              alignItems: "center",
-            },
-          ]}
-          onPress={() => setShowSkillsModal(true)}
-        >
-          {selectedSkills.length > 0 ? (
+          <TouchableOpacity
+            style={[
+              styles.input,
+              {
+                backgroundColor: darkMode === "dark" ? "#1a1a1a" : "#fff",
+                minHeight: 50,
+                paddingVertical: 8,
+                paddingHorizontal: 10,
+                flexDirection: "row",
+                flexWrap: "wrap",
+                alignItems: "center",
+              },
+            ]}
+            onPress={() => setShowSkillsModal(true)}
+          >
+            {selectedSkills.length > 0 ? (
               selectedSkills.map((skillName) => {
                 const skill = skillsList.find((s) => s.name === skillName);
                 const label = App_Language.startsWith("ar") ? skill?.label?.ar || skillName : skill?.label?.en || skillName;
@@ -289,12 +278,12 @@ export default function ProfileEditableForm({
                   </View>
                 );
               })
-          ) : (
-            <Text style={{ color: darkMode === "dark" ? "#aaa" : "#888" }}>
-              {App_Language.startsWith("ar") ? "اختر المهارات" : "Select Skills"}
-            </Text>
-          )}
-        </TouchableOpacity>
+            ) : (
+              <Text style={{ color: darkMode === "dark" ? "#aaa" : "#888" }}>
+                {App_Language.startsWith("ar") ? "اختر المهارات" : "Select Skills"}
+              </Text>
+            )}
+          </TouchableOpacity>
         </ScrollView>
 
         <SkillsBottomSheet
