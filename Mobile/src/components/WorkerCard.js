@@ -1,38 +1,13 @@
-import React, { memo, useMemo } from "react";
+import React, { memo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-function WorkerCard({ item, onPress, App_Language, isDark, isCurrentUser, userStatus }) {
+import {
+  getStatusColor,
+  getStatusLabel
+} from "@/src/utils/USER/statusHelpers";
 
-  // ⭐ Status label helper
-  const statusLabel = useMemo(() => {
-    switch (userStatus) {
-      case "online":
-        return App_Language?.startsWith("ar") ? "متصل" : "Online";
-      case "busy":
-        return App_Language?.startsWith("ar") ? "مشغول" : "Busy";
-      case "away":
-        return App_Language?.startsWith("ar") ? "بعيد" : "Away";
-      case "do not disturb":
-        return App_Language?.startsWith("ar") ? "عدم الإزعاج" : "Do Not Disturb";
-      default:
-        return App_Language?.startsWith("ar") ? "غير متصل" : "Offline";
-    }
-  }, [userStatus, App_Language]);
-  // ⭐ Status color helper
-  const statusColor = useMemo(() => {
-    switch (userStatus) {
-      case "online":
-        return "#10b981"; // green
-      case "busy":
-      case "away":
-        return "#FFAA00"; // yellow
-      case "do not disturb":
-        return "#FF0000"; // red
-      default:
-        return "#888"; // offline / unknown
-    }
-  }, [userStatus]);
+function WorkerCard({ item, onPress, App_Language, isDark, isCurrentUser, userStatus }) {
 
   if (!item) return null;
 
@@ -77,7 +52,7 @@ function WorkerCard({ item, onPress, App_Language, isDark, isCurrentUser, userSt
         <Image source={{ uri: imageUri }} style={styles.image} />
 
         {/* STATUS DOT */}
-        <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+        <View style={[styles.statusDot, { backgroundColor: getStatusColor(userStatus) }]} />
 
         <View style={styles.info}>
           {/* NAME */}
@@ -86,8 +61,12 @@ function WorkerCard({ item, onPress, App_Language, isDark, isCurrentUser, userSt
           </Text>
 
           {/* STATUS LABEL */}
-          <Text style={[styles.statusText, { color: statusColor }]}>
-            {statusLabel || "offline"}
+          <Text style={[styles.statusText, { color: getStatusColor(userStatus) }]}>
+            {getStatusLabel({
+              userOnline: userStatus !== "offline",
+              liveStatus: userStatus,
+              App_Language
+            })}
           </Text>
 
           {/* JOB */}

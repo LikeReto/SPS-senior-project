@@ -83,7 +83,7 @@ const User_Schema = new mongoose.Schema({
     User_Chats: {
         type: Object,
         default: {
-            Favorites_Chats: [],
+            Primary_Chats: [],
             General_Chats: [],
             Requests_Chats: [],
         }

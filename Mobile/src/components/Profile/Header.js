@@ -7,53 +7,21 @@ import {
     View
 } from "react-native";
 
+import {
+    getStatusColor,
+    getStatusLabel
+} from "@/src/utils/USER/statusHelpers";
+
 export default function MyProfileHeader({
     isUserLoggedIn,
     userOnline,            // ✅ boolean directly
     liveStatus,            // ✅ real-time status from socket
     isDark,
     showStatusMenu,
-    setShowStatusMenu,
     statusModalVisible,
     setStatusModalVisible
 }) {
     const { Expo_Router, App_Language } = useAuth();
-
-    console.log('userOnline : ', userOnline)
-    // ⭐ Translate Status
-    const getStatusLabel = () => {
-        if (!userOnline) return App_Language.startsWith("ar") ? "غير متصل" : "Offline";
-
-        switch (liveStatus) {
-            case "online":
-                return App_Language.startsWith("ar") ? "متصل" : "Online";
-            case "busy":
-                return App_Language.startsWith("ar") ? "مشغول" : "Busy";
-            case "away":
-                return App_Language.startsWith("ar") ? "بعيد" : "Away";
-            case "do not disturb":
-                return App_Language.startsWith("ar") ? "عدم الإزعاج" : "Do Not Disturb";
-            default:
-                return App_Language.startsWith("ar") ? "غير متصل" : "Offline";
-        }
-    };
-
-    // ⭐ Status color
-    const getStatusColor = () => {
-        if (!userOnline) return "#888888";
-
-        switch (liveStatus) {
-            case "online":
-                return "#10b981"; // green
-            case "busy":
-            case "away":
-                return "#FFAA00"; // yellow
-            case "do not disturb":
-                return "#FF0000"; // red
-            default:
-                return "#888";
-        }
-    };
 
     return (
         <View style={styles.header(isUserLoggedIn)}>
@@ -69,14 +37,18 @@ export default function MyProfileHeader({
                                 color: isDark ? "white" : "#111",
                             }}
                         >
-                            {getStatusLabel()}
+                            {getStatusLabel({
+                                userOnline,
+                                liveStatus,
+                                App_Language
+                            })}
                         </Text>
 
                         {/* Status Dot */}
                         <Ionicons
                             name="ellipse"
                             size={10}
-                            color={getStatusColor()}
+                            color={getStatusColor(liveStatus)}
                             style={{ marginLeft: 4 }}
                         />
 

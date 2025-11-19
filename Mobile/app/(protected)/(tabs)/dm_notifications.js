@@ -1,139 +1,177 @@
-// app/(protected)/dm/DMNotificationsScreen.js
-import React, { useState, useMemo, useEffect } from "react";
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  RefreshControl,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/src/Contexts/AuthContext";
 import { useSocket } from "@/src/Contexts/SocketContext";
 
+import {
+  getStatusColor,
+  getStatusLabel
+} from "@/src/utils/USER/statusHelpers";
+
 export default function DMNotificationsScreen() {
-  const { Expo_Router, darkMode } = useAuth();
-  const { dmChats: socketChats, onlineUsers } = useSocket();
+  const { Expo_Router, App_Language, darkMode } = useAuth();
+  const { ALL_Chats, onlineUsers, socket, fetchChats } = useSocket();
 
-  // Filters
   const [activeFilter, setActiveFilter] = useState("Primary");
-  const filters = [
-    { label: "Primary", value: "Primary" },
-    { label: "General", value: "General" },
-    { label: "Requests", value: "Requests" },
-  ];
+  const [refreshing, setRefreshing] = useState(false);
+  const [typingUsers, setTypingUsers] = useState(new Map()); // <chatId, userName>
 
-  // ⭐ Fake chats for demo
-  const [dmChats, setDmChats] = useState([]);
-  useEffect(() => {
-    const fakeChats = [
-      {
-        chatId: "chat1",
-        type: "primary",
-        senderName: "Alice",
-        senderId: "alice123",
-        senderImage: "https://i.pravatar.cc/150?img=1",
-        lastMessage: { text: "See you tomorrow!", createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
-        messages: [],
-      },
-      {
-        chatId: "chat2",
-        type: "primary",
-        senderName: "Bob",
-        senderId: "bob456",
-        senderImage: "https://i.pravatar.cc/150?img=2",
-        lastMessage: { text: "Got it, thanks!", createdAt: new Date(Date.now() - 1000 * 60 * 10).toISOString() },
-        messages: [],
-      },
-      {
-        chatId: "chat3",
-        type: "general",
-        senderName: "Charlie",
-        senderId: "charlie789",
-        senderImage: "https://i.pravatar.cc/150?img=3",
-        lastMessage: { text: "Can we meet later?", createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
-        messages: [],
-      },
-      {
-        chatId: "chat4",
-        type: "primary",
-        senderName: "Diana",
-        senderId: "diana321",
-        senderImage: "https://i.pravatar.cc/150?img=4",
-        lastMessage: { text: "Thank you!", createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString() },
-        messages: [],
-      },
-      {
-        chatId: "chat5",
-        type: "general",
-        senderName: "Ethan",
-        senderId: "ethan654",
-        senderImage: "https://i.pravatar.cc/150?img=5",
-        lastMessage: { text: "Let's catch up soon.", createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString() },
-        messages: [],
-      },
-    ];
-    setDmChats(fakeChats);
-  }, []);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchChats();
+    }
+    finally {
+      setRefreshing(false);
+    }
+  }, [fetchChats]);
 
-  // Filtered chats based on active filter
+  const filters = useMemo(
+    () => [
+      { label: "Primary", value: "Primary" },
+      { label: "General", value: "General" },
+      { label: "Requests", value: "Requests" },
+    ],
+    []
+  );
+
   const filteredChats = useMemo(() => {
-    if (!dmChats) return [];
-    if (activeFilter === "Requests") return []; // Push Requests screen later
-    if (activeFilter === "General") return dmChats.filter(c => c.type === "general");
-    return dmChats.filter(c => c.type === "primary");
-  }, [dmChats, activeFilter]);
+    if (!ALL_Chats) return [];
+    switch (activeFilter) {
+      case "Primary":
+        return ALL_Chats.filter((c) => c.type === "primary");
+      case "General":
+        return ALL_Chats.filter((c) => c.type === "general");
+      case "Requests":
+        return ALL_Chats.filter((c) => c.type === "requests");
+      default:
+        return ALL_Chats;
+    }
+  }, [ALL_Chats, activeFilter]);
 
   const handleChatPress = (chat) => {
-    Expo_Router.push(`/DM/${chat.chatId}`);
+    Expo_Router.push({
+      pathname: `/DM/${chat.user.id}`,
+      params: {
+        paramConversationId: chat._id,
+        receiverName: chat.user.name,
+        receiverImage: chat.user.image,
+        receiverId: chat.user.id,
+      }
+    });
   };
 
   const handleFilterPress = (filter) => {
-    if (filter === "Requests") {
-      Expo_Router.push("/DMRequests");
-    } else {
-      setActiveFilter(filter);
-    }
+    setActiveFilter(filter);
   };
 
-  const renderChat = ({ item }) => {
-    const lastMsg = item.lastMessage || {};
-    const isOnline = onlineUsers?.has?.(item.senderId) || Math.random() > 0.5; // Random online status for demo
+  // --------------------------
+  // Typing indicator listener
+  // --------------------------
+  useEffect(() => {
+    if (!socket) return;
 
-    return (
-      <TouchableOpacity
-        style={[styles.card, { backgroundColor: darkMode === "light" ? "#fff" : "#1a1a1a" }]}
-        onPress={() => handleChatPress(item)}
-      >
-        <Image source={{ uri: item.senderImage }} style={styles.image} />
-        {isOnline && <View style={styles.onlineDot} />}
+    const handleTyping = ({ chatId, senderId, isTyping }) => {
+      setTypingUsers((prev) => {
+        const updated = new Map(prev);
+        const chat = ALL_Chats.find((c) => c._id === chatId);
+        const userName = chat?.user?.name || "Someone";
 
-        <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={[styles.name, { color: darkMode === "light" ? "#111" : "#fff" }]}>{item.senderName}</Text>
-          <Text style={{ color: darkMode === "light" ? "#555" : "#aaa", marginTop: 2 }} numberOfLines={1}>
-            {lastMsg.text || "No messages yet"}
-          </Text>
-        </View>
+        if (isTyping) updated.set(chatId, userName);
+        else updated.delete(chatId);
 
-        <Text style={{ fontSize: 12, color: darkMode === "light" ? "#999" : "#666", marginLeft: 6 }}>
-          {lastMsg.createdAt ? new Date(lastMsg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
+        return updated;
+      });
+    };
+
+    socket.on("typing", handleTyping);
+    return () => socket.off("typing", handleTyping);
+  }, [socket, ALL_Chats]);
+
+  const renderChat = useCallback(
+    ({ item }) => {
+      const lastMsg = item.lastMessage || {};
+      const userStatus = onlineUsers.get(item.user.id) || "offline";
+      const isTyping = typingUsers.has(item.chatId);
+
+      return (
+        <TouchableOpacity
+          style={[styles.card, { backgroundColor: darkMode === "light" ? "#fff" : "#1a1a1a" }]}
+          onPress={() => handleChatPress(item)}
+        >
+          <View>
+            <Image
+              source={{ uri: item.user.image || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp" }}
+              style={styles.image}
+            />
+            {userStatus && <View style={[
+              styles.statusDot,
+              { backgroundColor: getStatusColor(userStatus) }
+            ]} />}
+          </View>
+
+          <View style={styles.chatInfo}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+              <Text style={[styles.name, { color: darkMode === "light" ? "#111" : "#fff" }]}>
+                {item.user.name}
+              </Text>
+              {lastMsg.time && (
+                <Text style={{ fontSize: 12, color: darkMode === "light" ? "#999" : "#777" }}>
+                  {new Date(lastMsg.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </Text>
+              )}
+            </View>
+            <Text
+              style={{ color: darkMode === "light" ? "#555" : "#aaa", marginTop: 2 }}
+              numberOfLines={1}
+            >
+              {isTyping ? "Typing..." : lastMsg.text || "No messages yet"}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      );
+    },
+    [onlineUsers, darkMode, typingUsers]
+  );
+
+  const EmptyList = () => (
+    <View style={styles.emptyContainer}>
+      <Text style={{ color: darkMode === "light" ? "#555" : "#aaa", textAlign: "center" }}>
+        {App_Language?.startsWith("ar")
+          ? "لا توجد رسائل بعد. ابدأ محادثة جديدة!"
+          : "No messages yet. Start a new conversation!"}
+      </Text>
+    </View>
+  );
 
   return (
-    <View style={{ flex: 1, backgroundColor: darkMode === "light" ? "#f5f5f5" : "#0a0a0a" }}>
+    <View style={[styles.container, { backgroundColor: darkMode === "light" ? "#f5f5f5" : "#0a0a0a" }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.title, { color: darkMode === "light" ? "#111111" : "#fff" }]}>Messages</Text>
+        <Text style={[styles.title, { color: darkMode === "light" ? "#111" : "#fff" }]}>Messages</Text>
         <Ionicons name="chatbubble-ellipses-outline" size={26} color="#10b981" />
       </View>
 
       {/* Filters */}
       <View style={styles.filtersContainer}>
-        {filters.map(f => (
+        {filters.map((f) => (
           <TouchableOpacity
             key={f.value}
             onPress={() => handleFilterPress(f.value)}
             style={[
               styles.filterButton,
               {
-                backgroundColor: activeFilter === f.value ? "#10b981" : darkMode === "light" ? "#e6f9f0" : "#1f1f1f",
+                backgroundColor:
+                  activeFilter === f.value ? "#10b981" : darkMode === "light" ? "#e6f9f0" : "#1f1f1f",
               },
             ]}
           >
@@ -144,27 +182,39 @@ export default function DMNotificationsScreen() {
         ))}
       </View>
 
-      {/* DM Chats List */}
+      {/* Chats List */}
       <FlatList
         data={filteredChats}
-        keyExtractor={(item) => item.chatId}
+        keyExtractor={(item) => item._id}
         renderItem={renderChat}
-        contentContainerStyle={{ paddingBottom: 60, paddingHorizontal: 16 }}
+        ListEmptyComponent={EmptyList}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 70 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: { flex: 1 },
   header: { padding: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   title: { fontSize: 22, fontWeight: "700" },
-
   filtersContainer: { flexDirection: "row", paddingHorizontal: 16, marginBottom: 10 },
-  filterButton: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, marginRight: 10, alignItems: "center", justifyContent: "center" },
-
-  card: { marginBottom: 10, borderRadius: 14, padding: 12, flexDirection: "row", alignItems: "center" },
+  filterButton: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, marginRight: 10, justifyContent: "center", alignItems: "center" },
+  card: { marginBottom: 12, borderRadius: 14, padding: 12, flexDirection: "row", alignItems: "center" },
   image: { width: 54, height: 54, borderRadius: 27 },
-  onlineDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: "#10b981", position: "absolute", top: 6, left: 44, borderWidth: 2, borderColor: "#fff" },
+  statusDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: "#fff",
+    position: "absolute",
+    bottom: 4,
+    left: 44,
+  },
+  chatInfo: { flex: 1, marginLeft: 12 },
   name: { fontSize: 16, fontWeight: "600" },
+  emptyContainer: { flex: 1, alignItems: "center", justifyContent: "center", marginTop: 50 },
 });

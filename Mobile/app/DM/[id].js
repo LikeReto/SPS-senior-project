@@ -1,139 +1,387 @@
-// app/(protected)/dm/DMChatScreen.js
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Image } from "expo-image";
-import { View, Text, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  StyleSheet,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
 import { useAuth } from "@/src/Contexts/AuthContext";
+import { useSocket } from "@/src/Contexts/SocketContext";
+import {
+  getStatusColor,
+  getStatusLabel
+} from "@/src/utils/USER/statusHelpers";
 
 export default function ChatScreen() {
-  const { Expo_Router, currentUser, darkMode } = useAuth();
+  const {
+    id: otherUserId,
+    paramConversationId,
+    receiverName,
+    receiverImage,
+  } = useLocalSearchParams();
+  const { Expo_Router, App_Language, currentUser, darkMode } = useAuth();
+  const { socket, ALL_Chats, onlineUsers, sendMessageToServer } = useSocket();
 
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
   const flatListRef = useRef(null);
 
-  // --- Fake chat info ---
-  const fakeChat = {
-    chatId: "fake123",
-    senderId: "user2_id",
-    senderName: "John Doe",
-    senderImage: "https://i.pravatar.cc/150?img=5",
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+
+  const userStatus = onlineUsers.get(otherUserId) || "offline";
+
+
+  // ------------------------------------------------
+  // 1️⃣ Find conversation by checking participants
+  // ------------------------------------------------
+  const chat = ALL_Chats.find((c) => {
+    const p = c.participants;
+    return p?.includes(currentUser.$id) && p?.includes(otherUserId);
+  });
+
+  const conversationId = chat?._id || paramConversationId || null; // real Mongo ObjectId
+
+
+  // fallback user info before chat exists
+  const otherUser = chat?.user || {
+    id: otherUserId,
+    name: receiverName,
+    image: receiverImage,
   };
 
-  // --- Fake messages for demo ---
-  const [messages, setMessages] = useState([
-    {
-      id: "m1",
-      text: "Hey there!",
-      senderId: fakeChat.senderId,
-      receiverId: "me",
-      senderName: fakeChat.senderName,
-      senderImage: fakeChat.senderImage,
-      type: "text",
-      createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-    },
-    {
-      id: "m2",
-      text: "Hello! How are you?",
-      senderId: "me",
-      receiverId: fakeChat.senderId,
-      senderName: currentUser.User_Name,
-      senderImage: currentUser.User_Profile_Picture,
-      type: "text",
-      createdAt: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
-    },
-    {
-      id: "m3",
-      text: "All good. You?",
-      senderId: fakeChat.senderId,
-      receiverId: "me",
-      senderName: fakeChat.senderName,
-      senderImage: fakeChat.senderImage,
-      type: "text",
-      createdAt: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
-    },
-  ]);
+  const imageUri =
+    otherUser?.image ||
+    "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
 
-  const scrollToEnd = useCallback(() => {
-    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50);
-  }, []);
+  // ------------------------------------------------
+  // 2️⃣ Sync messages with global store
+  // ------------------------------------------------
+  useEffect(() => {
+    if (chat?.messages) setMessages(chat.messages);
+  }, [ALL_Chats, chat]);
 
-  useEffect(scrollToEnd, [messages]);
+  // ------------------------------------------------
+  // 3️⃣ Listen to socket events
+  // ------------------------------------------------
+  useEffect(() => {
+    if (!socket) return;
 
-  // --- Send message handler ---
-  const handleSend = () => {
-    if (!input.trim()) return;
-
-    const newMsg = {
-      id: `m${messages.length + 1}`,
-      text: input.trim(),
-      senderId: "me",
-      receiverId: fakeChat.senderId,
-      senderName: currentUser.User_Name,
-      senderImage: currentUser.User_Profile_Picture,
-      type: "text",
-      createdAt: new Date().toISOString(),
+    const incoming = (msg) => {
+      if (msg.conversationId === conversationId) {
+        setMessages((prev) => {
+          const exists = prev.find((m) => m._id === msg._id || m.tempId === msg.tempId);
+          if (exists) return prev;
+          return [...prev, msg];
+        });
+      }
     };
 
-    setMessages(prev => [...prev, newMsg]);
+    const typingEvent = ({ conversationId: cId, senderId, isTyping }) => {
+      if (cId === conversationId && senderId === otherUserId) {
+        setIsTyping(isTyping);
+      }
+    };
+
+    const seenEvent = ({ conversationId: cId, messageId }) => {
+      if (cId !== conversationId) return;
+
+      setMessages((prev) =>
+        prev.map((m) =>
+          m._id === messageId || m.tempId === messageId ? { ...m, status: "seen" } : m
+        )
+      );
+    };
+
+    socket.on("getMessage", incoming);
+    socket.on("typing", typingEvent);
+    socket.on("messageSeen", seenEvent);
+
+    return () => {
+      socket.off("getMessage", incoming);
+      socket.off("typing", typingEvent);
+      socket.off("messageSeen", seenEvent);
+    };
+  }, [socket, conversationId]);
+
+  // ------------------------------------------------
+  // 4️⃣ Scroll + send seen event
+  // ------------------------------------------------
+  useEffect(() => {
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }, 20);
+
+    const last = messages[messages.length - 1];
+
+    if (!last) return;
+
+    if (last.senderId !== currentUser.$id && last.status !== "seen") {
+      socket?.emit("messageSeen", {
+        conversationId,
+        messageId: last._id || last.tempId,
+        userId: currentUser.$id,
+      });
+    }
+  }, [messages]);
+
+  // ------------------------------------------------
+  // 5️⃣ Send message
+  // ------------------------------------------------
+  const handleSend = async () => {
+    if (!input.trim()) return;
+
+    const tempId = `temp-${Date.now()}`;
+
+    const optimistic = {
+      tempId,
+      conversationId,        // may be null → backend will create new one
+      senderId: currentUser.$id,
+      receiverId: otherUserId,
+      text: input.trim(),
+      time: new Date().toISOString(),
+      status: "sending",
+    };
+
+    setMessages((prev) => [...prev, optimistic]);
     setInput("");
-    scrollToEnd();
+
+    socket.emit("typing", {
+      conversationId,
+      senderId: currentUser.$id,
+      isTyping: false,
+    });
+
+    try {
+      await sendMessageToServer(optimistic);
+    } catch (err) {
+      console.log("ERROR SENDING:", err);
+    }
   };
 
-  const renderItem = ({ item }) => {
-    const isMe = item.senderId === "me";
+  // ------------------------------------------------
+  // 6️⃣ Typing indicator
+  // ------------------------------------------------
+  const handleInputChange = (text) => {
+    setInput(text);
+
+    socket.emit("typing", {
+      conversationId,
+      senderId: currentUser.$id,
+      isTyping: text.trim().length > 0,
+    });
+  };
+
+
+  // ---------------------------------------------------
+  // GROUPING RULE:
+  // Show date header when:
+  // - first message OR different date from previous
+  //
+  // Show time under message ALWAYS (Instagram style)
+  // ---------------------------------------------------
+  // ----------------------
+  // CENTERED DATE FORMAT
+  // ----------------------
+  function formatDateHeader(date) {
+    const d = new Date(date);
+    const now = new Date();
+
+    const today = now.toDateString();
+    const msgDay = d.toDateString();
+
+    if (msgDay === today) return "Today";
+
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+
+    if (msgDay === yesterday.toDateString()) return "Yesterday";
+
+    return d.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: now.getFullYear() !== d.getFullYear() ? "numeric" : undefined,
+    });
+  }
+  const ONE_HOUR = 3600; // seconds
+
+
+  // ------------------------------------------------
+  // UI: Render message
+  // ------------------------------------------------
+  const renderItem = ({ item, index }) => {
+    const isMe = item.senderId === currentUser.$id;
+    // Unified timestamp reader (DB or local optimistic message)
+    const getMsgDate = (msg) => new Date(msg.createdAt || msg.time || msg.timestamp);
+
+    const currDate = getMsgDate(item);
+    const prev = messages[index - 1];
+    const prevDate = prev ? getMsgDate(prev) : null;
+
+    // ---- DATE HEADER ----
+    const showDateHeader =
+      index === 0 ||
+      prevDate.toDateString() !== currDate.toDateString();
+
+    // ---- 1 HOUR GROUPING ----
+    let isGrouped = false;
+    if (prev) {
+      const seconds = (currDate - prevDate) / 1000;
+      isGrouped = seconds < 3600 && prev.senderId === item.senderId;
+    }
+
+    const statusIcon =
+      item.status === "sending" ? (
+        <Ionicons name="time-outline" size={14} color="#ccc" />
+      ) : item.status === "delivered" ? (
+        <Ionicons name="checkmark" size={16} color="#eee" />
+      ) : item.status === "seen" ? (
+        <Ionicons name="checkmark-done" size={16} color="#DD7D10FF" />
+      ) : null;
+
     return (
-      <View style={[styles.messageContainer, isMe ? styles.me : styles.them]}>
-        <Text style={{ color: isMe ? "#fff" : darkMode === "light" ? "#111" : "#fff" }}>{item.text}</Text>
-        <Text style={{ fontSize: 10, color: isMe ? "#eee" : "#666", marginTop: 2 }}>
-          {new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-        </Text>
-      </View>
+      <>
+        {/* -------- DATE HEADER -------- */}
+        {showDateHeader && (
+          <View style={styles.centerHeaderWrapper}>
+            <Text style={styles.centerHeaderText}>
+              {formatDateHeader(currDate)}
+            </Text>
+          </View>
+        )}
+
+        {/* -------- MESSAGE BUBBLE -------- */}
+        <View
+          style={[
+            styles.messageContainer,
+            isMe ? styles.me(darkMode) : styles.them(darkMode),
+            isGrouped ? { marginTop: 2 } : { marginTop: 10 },
+          ]}
+        >
+          <Text
+            style={{
+              color: isMe
+                ? "#fff"
+                : darkMode === "light"
+                  ? "#000"
+                  : "#fff",
+              fontSize: 14,
+            }}
+          >
+            {item.text}
+          </Text>
+
+          {/* TIME + STATUS UNDER BUBBLE */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginTop: 3,
+              alignSelf: isMe ? "flex-end" : "flex-start",
+            }}
+          >
+            <Text style={{ color: "#999", fontSize: 10, marginRight: 4 }}>
+              {currDate.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </Text>
+
+            {isMe && statusIcon}
+          </View>
+        </View>
+      </>
     );
   };
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: darkMode === "light" ? "#f5f5f5" : "#0a0a0a" }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      style={{
+        flex: 1,
+        backgroundColor: darkMode === "light" ? "#f5f5f5" : "#0a0a0a",
+      }}
+      behavior={"padding"}
     >
-      {/* Header */}
+      {/* HEADER */}
       <View style={[styles.header, { backgroundColor: darkMode === "light" ? "#fff" : "#111" }]}>
         <TouchableOpacity onPress={() => Expo_Router.back()}>
           <Ionicons name="arrow-back" size={26} color="#10b981" />
         </TouchableOpacity>
-        <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-          <Image source={{ uri: fakeChat.senderImage }} style={{ width: 32, height: 32, borderRadius: 16, marginRight: 8 }} />
-          <Text style={{ fontSize: 18, fontWeight: "700", color: darkMode === "light" ? "#111" : "#fff" }}>
-            {fakeChat.senderName}
-          </Text>
+
+        <View style={{ alignItems: "center" }}>
+          <Image
+            source={{ uri: imageUri }}
+            style={{ width: 32, height: 32, borderRadius: 16 }}
+          />
+          <View
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "column",
+            }}
+          >
+            <Text style={[styles.title, { color: darkMode === "light" ? "#111" : "#fff" }]}>
+              {otherUser.name.length > 20
+                ? otherUser.name.slice(0, 20) + "..."
+                : otherUser.name
+              }
+            </Text>
+            <View
+              style={{ flexDirection: "row", alignItems: "center" }}
+            >
+              <View style={[
+                styles.statusDot,
+                { backgroundColor: getStatusColor(userStatus) }
+              ]}
+              />
+              {/* STATUS LABEL */}
+              <Text style={[styles.statusText, { color: getStatusColor(userStatus) }]}>
+                {getStatusLabel({
+                  userOnline: userStatus !== "offline",
+                  liveStatus: userStatus,
+                  App_Language
+                })}
+              </Text>
+            </View>
+          </View>
+
+          {isTyping && (
+            <Text style={{ fontSize: 12, marginTop: 2, color: "#aaa" }}>Typing...</Text>
+          )}
         </View>
+
         <View style={{ width: 26 }} />
       </View>
 
-      {/* Messages */}
+      {/* MESSAGES */}
       <FlatList
         ref={flatListRef}
         data={messages}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 12, paddingBottom: 90 }}
+        keyExtractor={(item, index) => `${item._id || item.tempId}-${index}`}
+        contentContainerStyle={{ padding: 12, paddingBottom: 10 }}
         showsVerticalScrollIndicator={false}
-        onContentSizeChange={scrollToEnd}
+        onContentSizeChange={() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }}
       />
 
-      {/* Input Bar */}
+      {/* INPUT */}
       <View style={[styles.inputBar, { backgroundColor: darkMode === "light" ? "#fff" : "#111" }]}>
         <TextInput
           value={input}
-          onChangeText={setInput}
+          onChangeText={handleInputChange}
           placeholder="Message..."
-          placeholderTextColor={darkMode === "light" ? "#666" : "#aaa"}
-          style={[styles.input, { color: darkMode === "light" ? "#111" : "#fff", backgroundColor: darkMode === "light" ? "#eee" : "#1a1a1a" }]}
+          style={styles.input(darkMode)}
+          placeholderTextColor="#888"
         />
-        <TouchableOpacity onPress={handleSend} style={styles.sendBtn}>
-          {loading ? <ActivityIndicator color="white" /> : <Ionicons name="send" size={22} color="#fff" />}
+        <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
+          <Ionicons name="send" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -141,11 +389,69 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: { height: 60, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", elevation: 4 },
-  messageContainer: { padding: 10, borderRadius: 12, maxWidth: "75%", marginVertical: 6 },
-  me: { backgroundColor: "#10b981", alignSelf: "flex-end" },
-  them: { backgroundColor: "#d1f7e1", alignSelf: "flex-start" },
-  inputBar: { flexDirection: "row", padding: 10, borderTopWidth: 0.3, borderColor: "#444", position: "absolute", bottom: 0, width: "100%" },
-  input: { flex: 1, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, fontSize: 15 },
-  sendBtn: { backgroundColor: "#10b981", width: 42, height: 42, borderRadius: 21, justifyContent: "center", alignItems: "center", marginLeft: 8 },
+  header: {
+    height: 'auto',
+    paddingHorizontal: 18,
+    paddingBottom: 5,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  title: { fontSize: 15, fontWeight: "600", marginTop: 2 },
+  messageContainer: {
+    padding: 10,
+    borderRadius: 12,
+    maxWidth: "75%",
+    marginVertical: 5,
+  },
+  me: (darkMode) => ({
+    backgroundColor: darkMode === "light" ? "#3797EF" : "#3797EF",
+    alignSelf: "flex-end"
+  }),
+  them: (darkMode) => ({
+    backgroundColor: darkMode === "light" ? "#CFCFCFFF" : "#262626",
+    alignSelf: "flex-start"
+  }),
+  timeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
+    gap: 6,
+  },
+  inputBar: {
+    flexDirection: "row",
+    padding: 10,
+    position: "relative",
+    width: "100%",
+    borderTopWidth: 0.3,
+    borderColor: "#333",
+  },
+  input: (darkMode) => ({
+    flex: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    fontSize: 15,
+    backgroundColor: darkMode === "light" ? "#fff" : "#111111",
+    color: darkMode === "light" ? "#000" : "#fff",
+  }),
+  sendBtn: {
+    marginLeft: 8,
+    backgroundColor: "#10b981",
+    width: 42,
+    height: 42,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 21,
+  },
+  statusDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    position: "relative",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  statusText: { fontSize: 12, fontWeight: "500", marginLeft: 4},
+
 });

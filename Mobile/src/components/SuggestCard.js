@@ -2,20 +2,14 @@ import React, { memo } from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
+import {
+  getStatusColor
+} from "@/src/utils/USER/statusHelpers";
+
 function SuggestCard({ item, onPress, isDark, isCurrentUser, userStatus }) {
   if (!item) return null;
 
-  // ⭐ Status color helper
-  const getStatusColor = () => {
-    switch (userStatus) {
-      case "online": return "#10b981";
-      case "busy":
-      case "away": return "#FFAA00";
-      case "do not disturb": return "#FF0000";
-      default: return "#888";
-    }
-  };
-  const statusColor = getStatusColor();
+  const statusColor = getStatusColor(userStatus);
 
   // ⭐ SAFE RATING
   const rating = Number(item?.User_Rating) || 0;

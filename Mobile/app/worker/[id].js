@@ -1,6 +1,5 @@
 import { useMemo, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { useUser2Store } from '@/src/hooks/CurrentPage_States/useGlobal_States';
@@ -8,7 +7,6 @@ import { useAuth } from "@/src/Contexts/AuthContext";
 
 export default function WorkerScreen() {
   const { Expo_Router, darkMode, currentUser } = useAuth();
-  const { id } = useLocalSearchParams();
   const user2Data = useUser2Store((state) => state.user2);
 
   const worker = useMemo(() => user2Data || {}, [user2Data]);
@@ -43,8 +41,17 @@ export default function WorkerScreen() {
     if (!currentUser) return alert("You must be logged in");
 
     await useUser2Store.getState().setUser2(worker);
+
+
     // ✔ New rule → just go to chat screen
-    Expo_Router.push(`/DM/${worker.User_$ID}`);
+    Expo_Router.push({
+      pathname: `/DM/${worker.User_$ID}`,
+      params: {
+        receiverId: worker.User_$ID,
+        receiverName: worker.User_Name,
+        receiverImage: worker.User_Profile_Picture,
+      }
+    });
   };
 
   return (

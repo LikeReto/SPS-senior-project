@@ -34,6 +34,7 @@ import {
     backendRegisterUser
 } from "@/src/api/CurrentUser/Get_Login_register_User";
 
+
 import {
     backendGetWorkersData
 } from "@/src/api/USERS/Workers";
@@ -62,7 +63,7 @@ export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null);
     const [currentUser_Data, setCurrentUser_Data] = useState(null);
     const [User_Status, setUser_Status] = useState('online');
-    const [followedUsers, setFollowedUsers] = useState([]); // array of userIds the current user is "subscribed" to
+
 
     // request location permission
     const requestLocationPermission = async () => {
@@ -377,7 +378,6 @@ export const AuthProvider = ({ children }) => {
         currentUser,
         currentUser_Data,
         User_Status,
-        followedUsers,
         setUser_Status,
         setCurrentUser,
         setCurrentUser_Data,

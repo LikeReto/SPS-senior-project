@@ -4,6 +4,7 @@ require("dotenv/config");
 // ✅ Load schemas
 const User_Schema = require("../models/Auth/User_Schema");
 const Chat_Schema = require("../models/Chats/Conversation");
+const Message_Schema = require("../models/Chats/Message");
 
 
 // ✅ Log if MongoDB URLs are available in environment variables
@@ -14,7 +15,8 @@ const Users_DB = mongoose.createConnection(process.env.Users_MONGO_URL);
 
 // ✅ Attach schemas to connections as models
 const UserModel = Users_DB.model("users", User_Schema);
-const ChatModel = Users_DB.model("conversation", Chat_Schema);
+const ChatModel = Users_DB.model("conversations", Chat_Schema);
+const MessageModel = Users_DB.model("messages", Message_Schema);
 
 // ✅ Connect to databases
 const Init_MongoDB = async () => {
@@ -36,6 +38,12 @@ const Init_MongoDB = async () => {
         const Chats_indexes = await ChatModel.collection.indexes();
         Chats_indexes ? console.log("✅ Indexes created successfully for Chat_Schema!") : console.log("❌ Failed to create Indexes for Chat_Schema!");
 
+        // Initialize MessageModel and create indexes
+        await MessageModel.init();
+        await MessageModel.createIndexes();
+        const Messages_indexes = await MessageModel.collection.indexes();
+        Messages_indexes ? console.log("✅ Indexes created successfully for Message_Schema!") : console.log("❌ Failed to create Indexes for Message_Schema!");
+
         console.log("🎉 All MongoDB connections established successfully!");
 
         return true;
@@ -51,4 +59,5 @@ module.exports = {
     Init_MongoDB,
     UserModel,
     ChatModel,
+    MessageModel,
 };

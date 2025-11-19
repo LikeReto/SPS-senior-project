@@ -50,7 +50,7 @@ router.post("/", async (req, res) => {
 
         // Step 4: Add conversation to Sender's primary chats
         await UserModel.findByIdAndUpdate(senderId, {
-            $addToSet: { "User_Chats.Favorites_Chats": conversation._id }
+            $addToSet: { "User_Chats.primary": conversation._id }
         });
 
         return res.status(200).json({

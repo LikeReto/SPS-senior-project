@@ -35,7 +35,7 @@ router.post("/", async (request, response) => {
                 User_PhoneNumber: updatedUserInfo.User_PhoneNumber,
                 User_CountryCode: updatedUserInfo.User_CountryCode,
                 User_CallingCode: updatedUserInfo.User_CallingCode,
-                User_Profile_Picture: appwriteUpdateResult.updatedData.profileURL,
+                User_Profile_Picture: appwriteUpdateResult.updatedData.profileURL || updatedUserInfo.User_Profile_Picture,
                 onBoarded_finished: updatedUserInfo.onBoarded_finished,
                 User_Skills: updatedUserInfo.User_Skills,
                 User_Projects: updatedUserInfo.User_Projects,
