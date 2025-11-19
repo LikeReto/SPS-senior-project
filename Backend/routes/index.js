@@ -40,10 +40,7 @@ const routeGroups = [
         path: "/api/sps",
         folder: "Chats",
         files: [
-            "create_new_Conversation",
-            "getMessages",
             "getConversations",
-            "sendMessage",
         ]
     },
     {

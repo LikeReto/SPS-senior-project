@@ -37,7 +37,7 @@ router.post("/", async (req, res) => {
       const otherUserId = conv.participants.find((id) => id !== userId);
 
       const otherUser = await UserModel.findOne({ User_$ID: otherUserId })
-        .select("User_Name User_Profile_Picture User_$ID")
+        .select("User_Name User_Profile_Picture User_$ID User_UserName")
         .lean();
 
       let type = "primary";
