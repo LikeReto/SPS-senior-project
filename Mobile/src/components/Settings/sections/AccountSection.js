@@ -4,24 +4,24 @@ import { useAuth } from "@/src/Contexts/AuthContext";
 import SectionTitle from "../SectionTitle";
 import { SettingsCard } from "../SettingsCard";
 
-export default function AccountSection() {
+export default function AccountSection({ isLoggedIn }) {
   const { darkMode, App_Language } = useAuth();
 
   const t = App_Language?.startsWith("ar")
     ? {
-        title: "الحساب",
-        account: "الحساب",
-        privacy: "الخصوصية",
-        security: "الأمان والأذونات",
-        shareProfile: "مشاركة الملف الشخصي",
-      }
+      title: "الحساب",
+      account: "الحساب",
+      privacy: "الخصوصية",
+      security: "الأمان والأذونات",
+      shareProfile: "مشاركة الملف الشخصي",
+    }
     : {
-        title: "Account",
-        account: "Account",
-        privacy: "Privacy",
-        security: "Security & Permissions",
-        shareProfile: "Share Profile",
-      };
+      title: "Account",
+      account: "Account",
+      privacy: "Privacy",
+      security: "Security & Permissions",
+      shareProfile: "Share Profile",
+    };
 
   return (
     <>
@@ -32,6 +32,7 @@ export default function AccountSection() {
         label={t.account}
         icon={<Ionicons name="person-outline" size={22} color="#10b981" />}
         isDark={darkMode === "light" ? false : true}
+        disabled={isLoggedIn ? false : true}
       />
 
       {/* Privacy */}
@@ -39,6 +40,7 @@ export default function AccountSection() {
         label={t.privacy}
         icon={<MaterialIcons name="lock-outline" size={22} color="#10b981" />}
         isDark={darkMode === "light" ? false : true}
+        disabled={isLoggedIn ? false : true}
       />
 
       {/* Security & Permissions */}
@@ -53,6 +55,7 @@ export default function AccountSection() {
         label={t.shareProfile}
         icon={<Ionicons name="share-social-outline" size={22} color="#10b981" />}
         isDark={darkMode === "light" ? false : true}
+        disabled={isLoggedIn ? false : true}
       />
     </>
   );

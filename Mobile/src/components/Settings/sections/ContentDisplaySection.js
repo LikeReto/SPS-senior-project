@@ -7,7 +7,7 @@ import { SettingsCard } from "../SettingsCard";
 import DarkModeModal from "@/src/components/Settings/modals/DarkModeModal";
 import LanguageModal from "@/src/components/Settings/modals/LanguageModal";
 
-export default function ContentDisplaySection() {
+export default function ContentDisplaySection({ isLoggedIn }) {
     const { darkMode, toggleDarkMode, changeLanguage, App_Language } = useAuth();
 
     const [DarkMode_ModalVisible, setDarkMode_ModalVisible] = useState(false);
@@ -48,6 +48,7 @@ export default function ContentDisplaySection() {
                 label={t.activity}
                 icon={<MaterialCommunityIcons name="chart-bar" size={22} color="#10b981" />}
                 isDark={darkMode === "light" ? false : true}
+                disabled={isLoggedIn ? false : true}
             />
 
             {/* Ads */}

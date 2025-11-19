@@ -11,16 +11,19 @@ import { styles } from "./styles";
  *  - onPress: function (optional) -> if provided the whole card is pressable
  *  - children: React node (optional) -> custom right-side content (badge, toggle, etc.)
  */
-export const SettingsCard = ({ label, icon, isDark, onPress, children }) => {
+export const SettingsCard = ({ label, icon, isDark, disabled, onPress, children }) => {
   const Wrapper = onPress ? TouchableOpacity : View;
 
   return (
     <Wrapper
       onPress={onPress}
+      disabled={disabled}
       activeOpacity={0.7}
       style={[
         styles.card,
-        { backgroundColor: isDark ? "#0f0f0f" : "#fff" }
+        { backgroundColor: isDark ? "#0f0f0f" : "#fff",
+          opacity: disabled ? 0.3 : 1
+         }
       ]}
     >
       <View style={styles.cardRow}>
@@ -36,7 +39,7 @@ export const SettingsCard = ({ label, icon, isDark, onPress, children }) => {
         {/* Label */}
         <Text style={[
           styles.label,
-          { color: isDark ? "#e5e5e5" : "#111" }
+          { color: isDark ? "#e5e5e5" : "#111111" }
         ]}>
           {label}
         </Text>

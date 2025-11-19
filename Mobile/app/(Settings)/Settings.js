@@ -8,7 +8,7 @@ import LoginSection from "@/src/components/Settings/sections/LoginSection";
 import AppInfoSection from "@/src/components/Settings/sections/AppInfoSection";
 
 export default function SettingsScreen() {
-  const { Expo_Router, darkMode, App_Language } = useAuth();
+  const { currentUser, Expo_Router, darkMode, App_Language } = useAuth();
 
   const t = App_Language?.startsWith("ar")
     ? { settings: "الإعدادات" }
@@ -23,13 +23,13 @@ export default function SettingsScreen() {
       contentContainerStyle={{ paddingBottom: 80 }}
     >
       <SettingsHeader onBack={() => Expo_Router.back()} title={t.settings} isDark={darkMode === "light" ? false : true} />
-      <AccountSection />
+      <AccountSection isLoggedIn={currentUser?.$id ? true : false}/>
 
-      <ContentDisplaySection />
+      <ContentDisplaySection isLoggedIn={currentUser?.$id ? true : false}/>
 
       <SupportAboutSection />
 
-      <LoginSection />
+      <LoginSection isLoggedIn={currentUser?.$id ? true : false} />
 
       <AppInfoSection />
     </ScrollView>

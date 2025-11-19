@@ -5,7 +5,7 @@ import { useAuth } from "@/src/Contexts/AuthContext";
 import SectionTitle from "../SectionTitle";
 import { SettingsCard } from "../SettingsCard";
 
-export default function LoginSection() {
+export default function LoginSection({ isLoggedIn }) {
   const { logoutUser, App_Language, darkMode } = useAuth();
 
   const t = App_Language?.startsWith("ar")
@@ -19,6 +19,7 @@ export default function LoginSection() {
         label={t.logout}
         icon={<Ionicons name="log-out-outline" size={24} color="#ef4444" />}
         isDark={darkMode === "light" ? false : true}
+        disabled={isLoggedIn ? false : true}
         onPress={() => {
           Alert.alert(
             t.logout,
