@@ -9,7 +9,8 @@ import {
 export default function MyProfileCard({
     isDark,
     currentUser,
-    currentUser_Data
+    currentUser_Data,
+    App_Language
 }) {
     return (
         <View style={[styles.profileCard, { backgroundColor: isDark ? "#1a1a1a" : "#fff" }]}>
@@ -23,7 +24,27 @@ export default function MyProfileCard({
                 />
             )}
 
-            <Text style={[styles.name, { color: isDark ? "white" : "#111" }]}>{currentUser?.name}</Text>
+            <Text
+                style={[
+                    styles.name,
+                    { color: isDark ? "white" : "#111" }
+                ]}
+            >
+                {currentUser?.name.length > 15
+                    ? currentUser?.name.slice(0, 15) + "..."
+                    : currentUser?.name
+                }
+            </Text>
+            {/* FREELANCER BADGE */}
+            {currentUser_Data?.User_Freelancer && (
+                <Text style={styles.freelancerBadge}>
+                    {App_Language.startsWith("ar")
+                        ? "عمل حر ⭐"
+                        : "⭐ Freelancer"
+                    }
+                </Text>
+            )}
+
             <Text style={[styles.job, { color: isDark ? "#10b981" : "#00a36c" }]}>
                 {currentUser_Data?.User_Job}
             </Text>
@@ -56,9 +77,31 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 3 },
         elevation: 4,
     },
-    image: { width: 100, height: 100, borderRadius: 50, marginBottom: 12 },
-    name: { fontSize: 16, fontWeight: "700" },
-    job: { fontSize: 14, marginTop: 2 },
-    infoRow: { flexDirection: "row", alignItems: "center", marginTop: 8 },
+    image: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        marginBottom: 12
+    },
+    name: {
+        fontSize: 16,
+        fontWeight: "700"
+
+    },
+    job: {
+        fontSize: 14,
+        marginTop: 2
+    },
+    infoRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: 8
+    },
+    freelancerBadge: {
+        fontSize: 12,
+        color: "#10b981",
+        marginVertical: 6,
+        fontWeight: "bold",
+    },
 });
 

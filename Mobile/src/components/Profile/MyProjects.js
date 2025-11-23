@@ -1,80 +1,109 @@
+import { useState } from "react";
 import {
-    StyleSheet,
-    Text,
-    View
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
 } from "react-native";
-
+import { Ionicons } from "@expo/vector-icons";
+import AddProjectModal from "@/src/components/Sheets/AddProjectModal";
+import ProjectList from "@/src/components/Profile/Projects/ProjectList";
 
 export default function MyProjects({
-    isDark,
-    projects,
-    App_Language
+  isDark,
+  projects, // array: { title, price, image, description }
+  App_Language,
+  onAddProject, // callback when user adds a project
+  onRequestProject, // callback when someone clicks Request
 }) {
+  const [modalVisible, setModalVisible] = useState(false);
 
-
-    return (
-        < View style = {{ marginHorizontal: 20, marginTop: 20 }
-}>
+  return (
+    <View style={{ marginHorizontal: 20, marginTop: 20 }}>
+      {/* HEADER */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center"
+        }}
+      >
         <Text style={{ fontSize: 17, fontWeight: "700", color: isDark ? "white" : "#111" }}>
           {App_Language.startsWith("ar") ? "مشاريعي" : "My Projects"}
         </Text>
-        <View style={styles.skills}>
-          {projects.map((project, index) => (
-            <View
-              key={index}
-              style={[styles.skillTag, { backgroundColor: isDark ? "#0f0f0f" : "#e6f9f0" }]}
-            >
-              <Text style={{ color: isDark ? "white" : "#10b981" }}>{project}</Text>
-            </View>
-          ))}
-        </View>
-        <View style={{ flexDirection: "row", marginTop: 10 }}>
-          {/* if no projects, show placeholder text */}
-          <Text
-            style={{
-              color: isDark ? "#aaa" : "#888",
-              marginRight: 8,
-              alignSelf: "center",
-            }}
+        {/* ADD NEW PROJECT CARD */}
+        {projects.length > 0 &&
+          <TouchableOpacity
+            onPress={() => setModalVisible(true)}
+            style={[
+              styles.addCard,
+              { backgroundColor: isDark ? "#1a1a1a" : "#e6f9f0" },
+            ]}
           >
-            {projects.length === 0 ? App_Language.startsWith("ar") ? "لا توجد مشاريع" : "No projects " : null}
-          </Text>
-        </View>
-      </View >
+            <Ionicons name="add"
+              size={24}
+              color={isDark ? "#fff" : "#10b981"} />
+          </TouchableOpacity>
+        }
+      </View>
 
+      {/* PROJECTS LIST */}
+      <ProjectList
+        projects={projects}
+        isDark={isDark}
+        App_Language={App_Language}
+        onRequestProject={onRequestProject}
+        setModalVisible={(visible) => setModalVisible(visible)}
+      />
+
+      {/* ADD PROJECT MODAL */}
+      <AddProjectModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        isDark={isDark}
+        App_Language={App_Language}
+        onSubmit={(p) => {
+          onAddProject(p);
+          setModalVisible(false);
+        }}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1 },
-    header: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: 20,
-    },
-    profileCard: {
-        marginHorizontal: 20,
-        borderRadius: 16,
-        padding: 20,
-        alignItems: "center",
-        shadowOpacity: 0.3,
-        shadowRadius: 6,
-        shadowOffset: { width: 0, height: 3 },
-        elevation: 4,
-    },
-    image: { width: 100, height: 100, borderRadius: 50, marginBottom: 12 },
-    name: { fontSize: 18, fontWeight: "700" },
-    job: { fontSize: 15, marginTop: 2 },
-    infoRow: { flexDirection: "row", alignItems: "center", marginTop: 8 },
-    skills: { flexDirection: "row", flexWrap: "wrap", marginTop: 10 },
-    skillTag: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 12,
-        marginRight: 8,
-        marginTop: 6,
-    },
+  addCard: {
+    width: 33,
+    height: 33,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  card: {
+    width: 160,
+    padding: 12,
+    borderRadius: 14,
+    marginRight: 12,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  projectImage: {
+    width: "100%",
+    height: 80,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  title: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  requestBtn: {
+    marginTop: 10,
+    paddingVertical: 8,
+    backgroundColor: "#10b981",
+    borderRadius: 8,
+    alignItems: "center",
+  },
 });

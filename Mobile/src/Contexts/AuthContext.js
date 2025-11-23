@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }) => {
         logoutUser,
         registerUser,
         updateUserProfile,
+        addNewProject
     } = useAuthActions({ Expo_Router, App_Language, pathname });
 
     const [App_Loading, setApp_Loading] = useState(true);
@@ -99,6 +100,7 @@ export const AuthProvider = ({ children }) => {
         loginUser,
         logoutUser,
         registerUser,
+        addNewProject,
     };
 
     return (

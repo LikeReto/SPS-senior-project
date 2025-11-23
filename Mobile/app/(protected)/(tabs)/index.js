@@ -110,11 +110,11 @@ export default function Home() {
       const userStatus = getUserStatus(item?.User_$ID);
       return (
         <SuggestCard
+          App_Language={App_Language}
           item={item}
           onPress={() => handleProfilePress(item)}
           isCurrentUser={item.User_$ID === currentUser?.$id}
           isDark={darkMode !== "light"}
-          App_Language={App_Language}
           userStatus={userStatus}
         />
       );

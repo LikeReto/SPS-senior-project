@@ -26,6 +26,7 @@ router.post("/", async (request, response) => {
             {
                 User_Age: updatedUserInfo.User_Age,
                 User_Job: updatedUserInfo.User_Job,
+                User_Freelancer: updatedUserInfo.User_Freelancer,
                 User_Degree: updatedUserInfo.User_Degree,
                 User_Bio: updatedUserInfo.User_Bio,
                 User_Birthday: updatedUserInfo.User_Birthday,

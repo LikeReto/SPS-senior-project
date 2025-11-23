@@ -185,64 +185,74 @@ export const fields = [
 
 // ---- Popular skills list with icons and emojis ----
 export const skillsList = [
-  // Programming & IT
-  { name: "Programming", icon: Code, emoji: "💻", label: { en: "Programming", ar: "برمجة" } },
-  { name: "Web Development", icon: Laptop, emoji: "🌐", label: { en: "Web Development", ar: "تطوير الويب" } },
-  { name: "Mobile Development", icon: Cpu, emoji: "📱", label: { en: "Mobile Development", ar: "تطوير تطبيقات الجوال" } },
-  { name: "UI/UX Design", icon: PenTool, emoji: "🎨", label: { en: "UI/UX Design", ar: "تصميم واجهة المستخدم وتجربة المستخدم" } },
-  { name: "Graphic Design", icon: Palette, emoji: "🖌️", label: { en: "Graphic Design", ar: "التصميم الجرافيكي" } },
-  { name: "Animation", icon: Brush, emoji: "🎬", label: { en: "Animation", ar: "الرسوم المتحركة" } },
-  { name: "Game Development", icon: null, emoji: "🎮", label: { en: "Game Development", ar: "تطوير الألعاب" } },
-  { name: "Data Analysis", icon: BarChart3, emoji: "📊", label: { en: "Data Analysis", ar: "تحليل البيانات" } },
-  { name: "Machine Learning", icon: Brain, emoji: "🤖", label: { en: "Machine Learning", ar: "التعلم الآلي" } },
-  { name: "Cybersecurity", icon: Shield, emoji: "🛡️", label: { en: "Cybersecurity", ar: "الأمن السيبراني" } },
-  { name: "Cloud Computing", icon: Cloud, emoji: "☁️", label: { en: "Cloud Computing", ar: "الحوسبة السحابية" } },
-  { name: "Networking", icon: Network, emoji: "🌐", label: { en: "Networking", ar: "الشبكات" } },
-  { name: "Software Testing", icon: Cpu, emoji: "✅", label: { en: "Software Testing", ar: "اختبار البرمجيات" } },
+    // Programming & IT
+    { name: "Programming", icon: Code, emoji: "💻", label: { en: "Programming", ar: "برمجة" } },
+    { name: "Web Development", icon: Laptop, emoji: "🌐", label: { en: "Web Development", ar: "تطوير الويب" } },
+    { name: "Mobile Development", icon: Cpu, emoji: "📱", label: { en: "Mobile Development", ar: "تطوير تطبيقات الجوال" } },
+    { name: "UI/UX Design", icon: PenTool, emoji: "🎨", label: { en: "UI/UX Design", ar: "تصميم واجهة المستخدم وتجربة المستخدم" } },
+    { name: "Graphic Design", icon: Palette, emoji: "🖌️", label: { en: "Graphic Design", ar: "التصميم الجرافيكي" } },
+    { name: "Animation", icon: Brush, emoji: "🎬", label: { en: "Animation", ar: "الرسوم المتحركة" } },
+    { name: "Game Development", icon: null, emoji: "🎮", label: { en: "Game Development", ar: "تطوير الألعاب" } },
+    { name: "Data Analysis", icon: BarChart3, emoji: "📊", label: { en: "Data Analysis", ar: "تحليل البيانات" } },
+    { name: "Machine Learning", icon: Brain, emoji: "🤖", label: { en: "Machine Learning", ar: "التعلم الآلي" } },
+    { name: "Cybersecurity", icon: Shield, emoji: "🛡️", label: { en: "Cybersecurity", ar: "الأمن السيبراني" } },
+    { name: "Cloud Computing", icon: Cloud, emoji: "☁️", label: { en: "Cloud Computing", ar: "الحوسبة السحابية" } },
+    { name: "Networking", icon: Network, emoji: "🌐", label: { en: "Networking", ar: "الشبكات" } },
+    { name: "Software Testing", icon: Cpu, emoji: "✅", label: { en: "Software Testing", ar: "اختبار البرمجيات" } },
 
-  // Business & Marketing
-  { name: "Marketing", icon: Megaphone, emoji: "📣", label: { en: "Marketing", ar: "التسويق" } },
-  { name: "Social Media Management", icon: Globe, emoji: "📱", label: { en: "Social Media Management", ar: "إدارة وسائل التواصل الاجتماعي" } },
-  { name: "SEO", icon: BarChart3, emoji: "🔍", label: { en: "SEO", ar: "تحسين محركات البحث" } },
-  { name: "Finance", icon: Wallet, emoji: "💰", label: { en: "Finance", ar: "المالية" } },
-  { name: "Accounting", icon: Calculator, emoji: "🧾", label: { en: "Accounting", ar: "المحاسبة" } },
-  { name: "Human Resources", icon: Users, emoji: "👥", label: { en: "Human Resources", ar: "الموارد البشرية" } },
-  { name: "Business Analysis", icon: Briefcase, emoji: "📈", label: { en: "Business Analysis", ar: "تحليل الأعمال" } },
-  { name: "Project Management", icon: Briefcase, emoji: "📋", label: { en: "Project Management", ar: "إدارة المشاريع" } },
+    // Business & Marketing
+    { name: "Marketing", icon: Megaphone, emoji: "📣", label: { en: "Marketing", ar: "التسويق" } },
+    { name: "Social Media Management", icon: Globe, emoji: "📱", label: { en: "Social Media Management", ar: "إدارة وسائل التواصل الاجتماعي" } },
+    { name: "SEO", icon: BarChart3, emoji: "🔍", label: { en: "SEO", ar: "تحسين محركات البحث" } },
+    { name: "Finance", icon: Wallet, emoji: "💰", label: { en: "Finance", ar: "المالية" } },
+    { name: "Accounting", icon: Calculator, emoji: "🧾", label: { en: "Accounting", ar: "المحاسبة" } },
+    { name: "Human Resources", icon: Users, emoji: "👥", label: { en: "Human Resources", ar: "الموارد البشرية" } },
+    { name: "Business Analysis", icon: Briefcase, emoji: "📈", label: { en: "Business Analysis", ar: "تحليل الأعمال" } },
+    { name: "Project Management", icon: Briefcase, emoji: "📋", label: { en: "Project Management", ar: "إدارة المشاريع" } },
 
-  // Arts & Media
-  { name: "Photography", icon: Camera, emoji: "📸", label: { en: "Photography", ar: "التصوير الفوتوغرافي" } },
-  { name: "Video Editing", icon: Video, emoji: "🎥", label: { en: "Video Editing", ar: "تحرير الفيديو" } },
-  { name: "Music Production", icon: Music, emoji: "🎵", label: { en: "Music Production", ar: "إنتاج الموسيقى" } },
-  { name: "Writing", icon: Book, emoji: "✍️", label: { en: "Writing", ar: "الكتابة" } },
-  { name: "Journalism", icon: Newspaper, emoji: "📰", label: { en: "Journalism", ar: "الصحافة" } },
-  { name: "Content Creation", icon: PenTool, emoji: "📝", label: { en: "Content Creation", ar: "إنشاء المحتوى" } },
+    // Arts & Media
+    { name: "Photography", icon: Camera, emoji: "📸", label: { en: "Photography", ar: "التصوير الفوتوغرافي" } },
+    { name: "Video Editing", icon: Video, emoji: "🎥", label: { en: "Video Editing", ar: "تحرير الفيديو" } },
+    { name: "Music Production", icon: Music, emoji: "🎵", label: { en: "Music Production", ar: "إنتاج الموسيقى" } },
+    { name: "Writing", icon: Book, emoji: "✍️", label: { en: "Writing", ar: "الكتابة" } },
+    { name: "Journalism", icon: Newspaper, emoji: "📰", label: { en: "Journalism", ar: "الصحافة" } },
+    { name: "Content Creation", icon: PenTool, emoji: "📝", label: { en: "Content Creation", ar: "إنشاء المحتوى" } },
 
-  // Engineering & Technical
-  { name: "Plumbing", icon: Toolbox, emoji: "🚰", label: { en: "Plumbing", ar: "السباكة" } },
-  { name: "Electrician", icon: Zap, emoji: "⚡", label: { en: "Electrician", ar: "الكهرباء" } },
-  { name: "Carpentry", icon: Hammer, emoji: "🪚", label: { en: "Carpentry", ar: "النجارة" } },
-  { name: "Mechanical Engineering", icon: Cog, emoji: "⚙️", label: { en: "Mechanical Engineering", ar: "الهندسة الميكانيكية" } },
-  { name: "Civil Engineering", icon: Building2, emoji: "🏗️", label: { en: "Civil Engineering", ar: "الهندسة المدنية" } },
-  { name: "Chemical Engineering", icon: FlaskRound, emoji: "⚗️", label: { en: "Chemical Engineering", ar: "الهندسة الكيميائية" } },
-  { name: "Electrical Engineering", icon: Cpu, emoji: "🔌", label: { en: "Electrical Engineering", ar: "الهندسة الكهربائية" } },
+    // Engineering & Technical
+    { name: "Plumbing", icon: Toolbox, emoji: "🚰", label: { en: "Plumbing", ar: "السباكة" } },
+    { name: "Electrician", icon: Zap, emoji: "⚡", label: { en: "Electrician", ar: "الكهرباء" } },
+    { name: "Carpentry", icon: Hammer, emoji: "🪚", label: { en: "Carpentry", ar: "النجارة" } },
+    { name: "Mechanical Engineering", icon: Cog, emoji: "⚙️", label: { en: "Mechanical Engineering", ar: "الهندسة الميكانيكية" } },
+    { name: "Civil Engineering", icon: Building2, emoji: "🏗️", label: { en: "Civil Engineering", ar: "الهندسة المدنية" } },
+    { name: "Chemical Engineering", icon: FlaskRound, emoji: "⚗️", label: { en: "Chemical Engineering", ar: "الهندسة الكيميائية" } },
+    { name: "Electrical Engineering", icon: Cpu, emoji: "🔌", label: { en: "Electrical Engineering", ar: "الهندسة الكهربائية" } },
 
-  // Health & Wellness
-  { name: "Nursing", icon: HeartPulse, emoji: "❤️", label: { en: "Nursing", ar: "التمريض" } },
-  { name: "Physiotherapy", icon: Dumbbell, emoji: "💪", label: { en: "Physiotherapy", ar: "العلاج الطبيعي" } },
-  { name: "Public Health", icon: Stethoscope, emoji: "🩺", label: { en: "Public Health", ar: "الصحة العامة" } },
-  { name: "Nutrition", icon: Heart, emoji: "🥗", label: { en: "Nutrition", ar: "التغذية" } },
-  { name: "Psychology", icon: Brain, emoji: "🧠", label: { en: "Psychology", ar: "علم النفس" } },
-  { name: "Veterinary", icon: Paw, emoji: "🐾", label: { en: "Veterinary", ar: "الطب البيطري" } },
+    // Health & Wellness
+    { name: "Nursing", icon: HeartPulse, emoji: "❤️", label: { en: "Nursing", ar: "التمريض" } },
+    { name: "Physiotherapy", icon: Dumbbell, emoji: "💪", label: { en: "Physiotherapy", ar: "العلاج الطبيعي" } },
+    { name: "Public Health", icon: Stethoscope, emoji: "🩺", label: { en: "Public Health", ar: "الصحة العامة" } },
+    { name: "Nutrition", icon: Heart, emoji: "🥗", label: { en: "Nutrition", ar: "التغذية" } },
+    { name: "Psychology", icon: Brain, emoji: "🧠", label: { en: "Psychology", ar: "علم النفس" } },
+    { name: "Veterinary", icon: Paw, emoji: "🐾", label: { en: "Veterinary", ar: "الطب البيطري" } },
 
-  // Miscellaneous / Popular Skills
-  { name: "Culinary Arts", icon: null, emoji: "👨‍🍳", label: { en: "Culinary Arts", ar: "فن الطهي" } },
-  { name: "Fashion Design", icon: null, emoji: "👗", label: { en: "Fashion Design", ar: "تصميم الأزياء" } },
-  { name: "Event Management", icon: null, emoji: "🎉", label: { en: "Event Management", ar: "إدارة الفعاليات" } },
-  { name: "Tourism & Travel", icon: null, emoji: "✈️", label: { en: "Tourism & Travel", ar: "السياحة والسفر" } },
-  { name: "Language Translation", icon: Book, emoji: "🈯", label: { en: "Language Translation", ar: "الترجمة" } },
-  { name: "Tutoring", icon: Book, emoji: "📚", label: { en: "Tutoring", ar: "التدريس الخصوصي" } },
-  { name: "Handicrafts", icon: Brush, emoji: "🧵", label: { en: "Handicrafts", ar: "الأعمال اليدوية" } },
+    // Miscellaneous / Popular Skills
+    { name: "Culinary Arts", icon: null, emoji: "👨‍🍳", label: { en: "Culinary Arts", ar: "فن الطهي" } },
+    { name: "Fashion Design", icon: null, emoji: "👗", label: { en: "Fashion Design", ar: "تصميم الأزياء" } },
+    { name: "Event Management", icon: null, emoji: "🎉", label: { en: "Event Management", ar: "إدارة الفعاليات" } },
+    { name: "Tourism & Travel", icon: null, emoji: "✈️", label: { en: "Tourism & Travel", ar: "السياحة والسفر" } },
+    { name: "Language Translation", icon: Book, emoji: "🈯", label: { en: "Language Translation", ar: "الترجمة" } },
+    { name: "Tutoring", icon: Book, emoji: "📚", label: { en: "Tutoring", ar: "التدريس الخصوصي" } },
+    { name: "Handicrafts", icon: Brush, emoji: "🧵", label: { en: "Handicrafts", ar: "الأعمال اليدوية" } },
+];
+
+
+export const PREDEFINED_PROJECTS = [
+    { name: "Website", ar: "موقع إلكتروني" },
+    { name: "Mobile App", ar: "تطبيق جوال" },
+    { name: "Logo Design", ar: "تصميم شعار" },
+    { name: "Brand Identity", ar: "هوية بصرية" },
+    { name: "API Development", ar: "تطوير API" },
+    { name: "Marketing Video", ar: "فيديو تسويقي" },
 ];
 
 

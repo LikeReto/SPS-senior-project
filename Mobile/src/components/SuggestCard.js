@@ -5,8 +5,9 @@ import { Ionicons } from "@expo/vector-icons";
 import {
   getStatusColor
 } from "@/src/utils/USER/statusHelpers";
+import { DEFAULT_PROFILE_PIC } from "@/src/constants/aConstants";
 
-function SuggestCard({ item, onPress, isDark, isCurrentUser, userStatus }) {
+function SuggestCard({ App_Language, item, onPress, isDark, isCurrentUser, userStatus }) {
   if (!item) return null;
 
   const statusColor = getStatusColor(userStatus);
@@ -21,7 +22,7 @@ function SuggestCard({ item, onPress, isDark, isCurrentUser, userStatus }) {
   const imageUri =
     item?.User_Profile_Picture && item.User_Profile_Picture !== ""
       ? item.User_Profile_Picture
-      : 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+      : DEFAULT_PROFILE_PIC;
 
   // ⭐ SKILLS PREVIEW
   const skills =
@@ -48,26 +49,32 @@ function SuggestCard({ item, onPress, isDark, isCurrentUser, userStatus }) {
       activeOpacity={0.9}
     >
       <View style={styles.imageWrapper}>
-        <Image source={{ uri: imageUri }} style={styles.image} />
+        <Image source={typeof imageUri === "string"
+          ? { uri: imageUri }
+          : imageUri
+        } style={styles.image} />
         {/* STATUS DOT */}
         <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
       </View>
 
       {/* NAME */}
       <Text style={[styles.name, { color: isDark ? "white" : "#111" }]}>
-        {item?.User_Name || "Unknown"}
+        {item?.User_Name.length > 11
+          ? item?.User_Name.substring(0, 11) + "..." : item?.User_Name
+          || "Unknown"
+        }
       </Text>
 
       {/* JOB */}
-      <Text style={[styles.job, { color: isDark ? "#10b981" : "#00a36c" }]}>
-        {item?.User_Job || "Freelancer"}
-      </Text>
+      {item?.User_Job &&
+        <Text style={[styles.job, { color: isDark ? "#10b981" : "#00a36c" }]}>
+          {item?.User_Job}
+        </Text>
+      }
 
       {/* FREELANCER BADGE */}
       {item?.User_Freelancer && (
-        <Text style={styles.freelancerBadge}>
-          ⭐ Verified Freelancer
-        </Text>
+        <Text style={styles.freelancerBadge}>{App_Language.startsWith("ar") ? "عمل حر ⭐" : "⭐ Freelancer"}</Text>
       )}
 
       {/* SKILLS PREVIEW */}
@@ -77,7 +84,7 @@ function SuggestCard({ item, onPress, isDark, isCurrentUser, userStatus }) {
             styles.skills,
             { color: isDark ? "#bbb" : "#666" },
           ]}
-          numberOfLines={1}
+          numberOfLines={2}
         >
           {skills}
         </Text>

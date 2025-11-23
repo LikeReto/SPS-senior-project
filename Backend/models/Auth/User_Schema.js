@@ -36,7 +36,7 @@ const User_Schema = new mongoose.Schema({
         default: ""
     },
     User_Last_Online: {
-        type: String,
+        type: Date,
         default: ""
     },
     User_Name: {

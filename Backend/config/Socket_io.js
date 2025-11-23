@@ -45,12 +45,11 @@ async function Socket_io(socket_server) {
     });
 
     io.on("connection", (socket) => {
-      console.log(`🚀 Connected: ${socket.id}`);
 
       // ------------------------
       // Add user
       // ------------------------
-      socket.on("addUser", ({ User_$ID, User_Status }) => {
+      socket.on("addUser", async ({ User_$ID, User_Status }) => {
         if (!User_$ID) return;
 
         onlineUsers.set(User_$ID, {
@@ -59,6 +58,15 @@ async function Socket_io(socket_server) {
         });
 
         io.emit("userOnline", { userId: User_$ID, status: User_Status });
+
+        // update the last seen status in DB using User_$ID
+        await UserModel.findOneAndUpdate({
+          User_$ID: User_$ID
+        }, {
+          User_Last_Online: new Date(),
+        });
+
+        console.log(`✅ User connected: ${User_$ID} Socket: ${socket.id} (Status: ${User_Status || "online"})`);
       });
 
       // ------------------------
@@ -169,11 +177,18 @@ async function Socket_io(socket_server) {
       // ------------------------
       // Disconnect
       // ------------------------
-      socket.on("disconnect", () => {
+      socket.on("disconnect", async () => {
         for (const [userId, data] of onlineUsers.entries()) {
           if (data.socketId === socket.id) {
             onlineUsers.delete(userId);
             io.emit("userOffline", { userId });
+
+            await UserModel.findOneAndUpdate({
+              User_$ID: userId
+            }, {
+              User_Last_Online: new Date(),
+            });
+            console.log(`⚠️ User disconnected: ${userId} Socket: ${socket.id}`);
             break;
           }
         }

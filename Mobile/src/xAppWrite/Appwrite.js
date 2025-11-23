@@ -122,3 +122,50 @@ export const update_Current_User_Profile = async (userInfo) => {
     return false;
   }
 }
+
+// 🚀Function to upload a file to storage 
+export const upload_File_To_Storage = async (MediaFile) => {
+  try {
+    if (MediaFile) {
+      const upload_Response = await storage.createFile({
+        bucketId: "6907d2c4000600e306c5",
+        file: MediaFile,
+        fileId: `unique()`,
+      });
+      // Assuming you have already uploaded a file and have its fileId
+      const fileId = upload_Response.$id;
+      const bucketId = "6907d2c4000600e306c5";
+      const projectId = process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID
+      
+      // Generate the file URL
+      const fileURL = `${userClient.config.endpoint}/storage/buckets/${bucketId}/files/${fileId}/view?project=${projectId}`;
+      return {
+        success: true,
+        projectFileURL: fileURL,
+      }
+    }
+  }
+  catch (err) {
+    console.error("❌ Appwrite ~> Error uploading file to storage:", err.message);
+    return false;
+  }
+};
+// 🚀Function to remove a file from storage
+export const delete_File_From_Storage = async (fileId) => {
+  try {
+    if (fileId) {
+      const delete_Response = await storage.deleteFile({
+        bucketId: "6907d2c4000600e306c5",
+        fileId: fileId,
+      });
+      return {
+        success: true,
+        response: delete_Response,
+      }
+    }
+  }
+  catch (err) {
+    console.error("❌ Appwrite ~> Error deleting file from storage:", err.message);
+    return false;
+  }
+};

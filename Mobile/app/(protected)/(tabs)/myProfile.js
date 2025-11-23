@@ -13,7 +13,7 @@ import { useSocket } from "@/src/Contexts/SocketContext";
 import StatusModal from "@/src/components/Sheets/ProfileStatus";
 import MyProfileHeader from "@/src/components/Profile/Header";
 import MyProfileCard from "@/src/components/Profile/profileCard";
-import MySkills from "@/src/components/Profile/MySkills";
+import MySkills from "@/src/components/Profile/My_Worker_Skills";
 import MyProjects from "@/src/components/Profile/MyProjects";
 import { skillsList } from "@/src/constants/Degrees_Fields";
 
@@ -27,6 +27,7 @@ export default function MyProfileScreen() {
     User_Status,
     setUser_Status,
     refreshCurrentUserData,
+    addNewProject
   } = useAuth();
 
   const { isUserOnline, getUserStatus, updateUserStatus } = useSocket();
@@ -44,9 +45,9 @@ export default function MyProfileScreen() {
     setUser_Status(status);        // local
     updateUserStatus(status);      // socket real-time
   };
-  
+
   // Refresh
-  const handleRefresh = async() => {
+  const handleRefresh = async () => {
     try {
       await refreshCurrentUserData();
     }
@@ -62,7 +63,7 @@ export default function MyProfileScreen() {
       refreshControl={
         <RefreshControl refreshing={false} onRefresh={handleRefresh} />
       }
-      
+
     >
       {/* --- Header Section --- */}
       <MyProfileHeader
@@ -83,14 +84,14 @@ export default function MyProfileScreen() {
             isDark={darkMode === "light" ? false : true}
             currentUser={currentUser}
             currentUser_Data={currentUser_Data}
-            fields
+            App_Language={App_Language}
           />
 
           {/* --- My Skills Section --- */}
           <MySkills
             isDark={darkMode === "light" ? false : true}
             skills={currentUser_Data?.User_Skills || []}
-            allSkills={skillsList} 
+            allSkills={skillsList}
             App_Language={App_Language}
           />
 
@@ -99,6 +100,7 @@ export default function MyProfileScreen() {
             isDark={darkMode === "light" ? false : true}
             projects={currentUser_Data?.User_Projects || []}
             App_Language={App_Language}
+            onAddProject={addNewProject}   // ✨ FIX
           />
         </>
       ) : (

@@ -18,6 +18,8 @@ import {
   getStatusLabel
 } from "@/src/utils/USER/statusHelpers";
 
+import { DEFAULT_PROFILE_PIC } from "@/src/constants/aConstants";
+
 export default function ChatScreen() {
   const {
     id: otherUserId,
@@ -57,7 +59,7 @@ export default function ChatScreen() {
 
   const imageUri =
     otherUser?.image ||
-    "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
+    DEFAULT_PROFILE_PIC;
 
   // ------------------------------------------------
   // 2️⃣ Sync messages with global store
@@ -168,6 +170,8 @@ export default function ChatScreen() {
   // 6️⃣ Typing indicator
   // ------------------------------------------------
   const handleInputChange = (text) => {
+    // if it empty or only spaces, return
+    if (text.length === 0 || /^\s+$/.test(text)) return;
     setInput(text);
 
     socket.emit("typing", {
@@ -315,7 +319,10 @@ export default function ChatScreen() {
 
         <View style={{ alignItems: "center" }}>
           <Image
-            source={{ uri: imageUri }}
+            source={typeof imageUri === "string"
+              ? { uri: imageUri }
+              : imageUri
+            }
             style={{ width: 32, height: 32, borderRadius: 16 }}
           />
           <View
@@ -380,7 +387,7 @@ export default function ChatScreen() {
           style={styles.input(darkMode)}
           placeholderTextColor="#888"
         />
-        <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
+        <TouchableOpacity style={styles.sendBtn(input.trim() !== "")} onPress={handleSend}>
           <Ionicons name="send" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
@@ -435,15 +442,15 @@ const styles = StyleSheet.create({
     backgroundColor: darkMode === "light" ? "#fff" : "#111111",
     color: darkMode === "light" ? "#000" : "#fff",
   }),
-  sendBtn: {
+  sendBtn: (notEmpty) => ({
     marginLeft: 8,
-    backgroundColor: "#10b981",
+    backgroundColor: notEmpty ? "#3797EF" : "#888",
     width: 42,
     height: 42,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 21,
-  },
+  }),
   statusDot: {
     width: 12,
     height: 12,
@@ -452,6 +459,5 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#fff",
   },
-  statusText: { fontSize: 12, fontWeight: "500", marginLeft: 4},
-
+  statusText: { fontSize: 12, fontWeight: "500", marginLeft: 4 },
 });

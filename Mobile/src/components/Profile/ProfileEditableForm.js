@@ -31,6 +31,7 @@ export default function ProfileEditableForm({
   const [User_Name, setUser_Name] = useState(currentUser_Data?.User_Name || "");
   const [User_UserName, setUser_UserName] = useState(currentUser_Data?.User_UserName || "");
   const [User_Job, setUser_Job] = useState(currentUser_Data?.User_Job || "");
+  const [User_Freelancer, setUser_Freelancer] = useState(currentUser_Data?.User_Freelancer || false);
   const [User_PhoneNumber, setUser_PhoneNumber] = useState(currentUser_Data?.User_PhoneNumber || "");
   const [User_Degree, setUser_Degree] = useState(currentUser_Data?.User_Degree || "");
   const [User_Profile_Picture, setUser_Profile_Picture] = useState(currentUser_Data?.User_Profile_Picture || "");
@@ -73,6 +74,7 @@ export default function ProfileEditableForm({
         User_Name,
         User_UserName,
         User_Job,
+        User_Freelancer,
         User_PhoneNumber: User_PhoneNumber,
         User_CountryCode: countryCode,
         User_CallingCode: callingCode,
@@ -155,11 +157,33 @@ export default function ProfileEditableForm({
         </TouchableOpacity>
       </View>
 
-      {/* Input fields */}
       <View style={styles.form}>
+        {/* Checkbox for Freelancer */}
+        <View style={{ flexDirection: App_Language.startsWith("ar") ? "row-reverse" : "row", alignItems: "center", marginBottom: 16 }}>
+          <Text style={{ marginLeft: 8, color: darkMode === "dark" ? "white" : "#111", fontSize: 16 }}>
+            {App_Language.startsWith("ar") ? "عمل حر : " : "Freelancer : "}
+          </Text>
+          <TouchableOpacity
+            onPress={() => setUser_Freelancer(!User_Freelancer)}
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: 4,
+              borderWidth: 2,
+              borderColor: User_Freelancer ? "#10b981" : "#666",
+              backgroundColor: User_Freelancer ? "#10b981" : "transparent",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            {User_Freelancer && <Ionicons name="checkmark" size={16} color="white" />}
+          </TouchableOpacity>
+        </View>
+
         <Field label={App_Language.startsWith("ar") ? "الاسم" : "Name"} value={User_Name} setValue={setUser_Name} isDark={darkMode === "dark"} />
         <Field label={App_Language.startsWith("ar") ? "اسم المستخدم" : "Username"} value={User_UserName} setValue={setUser_UserName} isDark={darkMode === "dark"} />
         <Field label={App_Language.startsWith("ar") ? "المسمى الوظيفي" : "Job"} value={User_Job} setValue={setUser_Job} isDark={darkMode === "dark"} />
+
 
         {/* Phone with country picker */}
         <Text style={[styles.label, { color: darkMode === "dark" ? "white" : "#111" }]}>

@@ -7,6 +7,8 @@ import {
   getStatusLabel
 } from "@/src/utils/USER/statusHelpers";
 
+import { DEFAULT_PROFILE_PIC } from "@/src/constants/aConstants";
+
 function WorkerCard({ item, onPress, App_Language, isDark, isCurrentUser, userStatus }) {
 
   if (!item) return null;
@@ -22,7 +24,7 @@ function WorkerCard({ item, onPress, App_Language, isDark, isCurrentUser, userSt
   const imageUri =
     item?.User_Profile_Picture && item.User_Profile_Picture !== ""
       ? item.User_Profile_Picture
-      : 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+      : DEFAULT_PROFILE_PIC;
 
   // ⭐ SKILLS PREVIEW
   const skills =
@@ -49,16 +51,27 @@ function WorkerCard({ item, onPress, App_Language, isDark, isCurrentUser, userSt
       activeOpacity={0.9}
     >
       <View style={styles.row}>
-        <Image source={{ uri: imageUri }} style={styles.image} />
+        <Image
+          source={typeof imageUri === "string"
+            ? { uri: imageUri }
+            : imageUri}
+          style={styles.image}
+        />
 
         {/* STATUS DOT */}
         <View style={[styles.statusDot, { backgroundColor: getStatusColor(userStatus) }]} />
 
         <View style={styles.info}>
-          {/* NAME */}
-          <Text style={[styles.name, { color: isDark ? "#fff" : "#111" }]}>
-            {item?.User_Name}
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            {/* NAME */}
+            <Text style={[styles.name, { color: isDark ? "#fff" : "#111" }]}>
+              {item?.User_Name}
+            </Text>
+            {/* FREELANCER BADGE */}
+            {item?.User_Freelancer && (
+              <Text style={styles.freelancerBadge}>{App_Language.startsWith("ar") ? "عمل حر ⭐" : "⭐ Freelancer"}</Text>
+            )}
+          </View>
 
           {/* STATUS LABEL */}
           <Text style={[styles.statusText, { color: getStatusColor(userStatus) }]}>
@@ -70,20 +83,17 @@ function WorkerCard({ item, onPress, App_Language, isDark, isCurrentUser, userSt
           </Text>
 
           {/* JOB */}
-          <Text style={[styles.job, { color: isDark ? "#10b981" : "#00a36c" }]}>
-            {item?.User_Job || "Freelancer"}
-          </Text>
-
-          {/* FREELANCER BADGE */}
-          {item?.User_Freelancer && (
-            <Text style={styles.freelancerBadge}>⭐ Verified Freelancer</Text>
-          )}
+          {item?.User_Job &&
+            <Text style={[styles.job, { color: isDark ? "#10b981" : "#00a36c" }]}>
+              {item?.User_Job}
+            </Text>
+          }
 
           {/* SKILLS */}
           {skills && (
             <Text
               style={[styles.skills, { color: isDark ? "#bbb" : "#666" }]}
-              numberOfLines={1}
+              numberOfLines={2}
             >
               {skills}
             </Text>
@@ -130,23 +140,34 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 4,
+    
   },
-  row: { flexDirection: "row", alignItems: "center" },
-  image: { width: 60, height: 60, borderRadius: 30, marginRight: 12 },
+  row: { 
+    flexDirection: "row", 
+    alignItems: "center",
+    gap: 8 
+  },
+  image: {
+    width: 60,
+    height: 60,
+    borderRadius: 40,
+    marginBottom: 10,
+    backgroundColor: "#ddd",
+  },
   statusDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
     position: "absolute",
-    top: 48,
-    left: 48,
+    bottom: 4,
+    left: 46,
     borderWidth: 2,
     borderColor: "#fff",
   },
   info: { flex: 1, flexDirection: "column" },
   name: { fontSize: 16, fontWeight: "600" },
   statusText: { fontSize: 12, fontWeight: "500", marginTop: 2 },
-  job: { fontSize: 14, marginTop: 2 },
+  job: { fontSize: 13, marginVertical: 4 },
   freelancerBadge: {
     marginTop: 2,
     fontSize: 12,
@@ -155,7 +176,7 @@ const styles = StyleSheet.create({
   },
   skills: {
     marginTop: 4,
-    fontSize: 12,
+    fontSize: 11,
     maxWidth: "90%",
   },
   ratingContainer: { flexDirection: "row", alignItems: "center", marginTop: 6 },

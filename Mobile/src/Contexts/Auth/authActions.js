@@ -8,6 +8,8 @@ import {
     getCurrentUser,
     Login_Current_User,
     logout_Current_User,
+    upload_File_To_Storage,
+    delete_File_From_Storage
 } from "@/src/xAppWrite/Appwrite";
 
 import { backendUpdateUserInfo } from "@/src/api/CurrentUser/updateUserInfo";
@@ -17,6 +19,7 @@ import {
     backendLoginUser,
     backendRegisterUser
 } from "@/src/api/CurrentUser/Get_Login_register_User";
+import axios from "axios";
 
 
 // 🙍🏻‍♂️ AuthActions
@@ -249,13 +252,81 @@ const useAuthActions = ({
         }
     };
 
+    //🚀 Add new project to current user 
+    const addNewProject = async (newProject) => {
+        let uploaded_Project_Image_FIle = null;
+        try {
+            if (currentUser_Data) {
+                // the user's current projects is array of objects
+                // { title, price, image, description }
+                // node js will handle the addition using addToSet to avoid duplicates
+
+                // first upload the image to Appwrite storage if exists
+                if (newProject.Project_Image && newProject.Project_Image?.uri && newProject.Project_Image?.size > 0) {
+                    console.log("✅ AuthContext ~> Uploading new project image to storage...");
+                    // upload to Appwrite storage
+                    const upload_Project_Image_Response = await upload_File_To_Storage(newProject.Project_Image);
+                    if (upload_Project_Image_Response && upload_Project_Image_Response.success === true
+                        && upload_Project_Image_Response.projectFileURL) {
+                        uploaded_Project_Image_FIle = upload_Project_Image_Response.projectFileURL;
+                        console.log("✅ AuthContext ~> Project image uploaded successfully");
+                    }
+                }
+
+                const post_data = {
+                    User_$ID: currentUser.$id,
+                    newProject: {
+                        Project_Title: newProject.Project_Title,
+                        Project_Type: newProject.Project_Type,
+                        Project_Description: newProject.Project_Description,
+                        Project_Price: newProject.Project_Price,
+                        Project_Image: uploaded_Project_Image_FIle || null,
+                        Project_Status: newProject.Project_Status || "active",
+                    },
+                }
+                const updateResponse = await axios.post(
+                    `${process.env.EXPO_PUBLIC_APP_API}/api/sps/addNewProject`,
+                    post_data
+                );
+
+                if (updateResponse.status === 200 && updateResponse.data.success === true) {
+                    // refresh user data
+                    // only update the projects array locally to avoid extra call
+                    // the backend already sent updatedUser 
+                    setCurrentUser_Data(updateResponse.data.updatedUser);
+                    Alert.alert(App_Language.startsWith("ar")
+                        ? "تمت إضافة المشروع بنجاح"
+                        : "Project Added Successfully");
+                    return true;
+                }
+            }
+        }
+        catch (error) {
+            console.error("❌ AuthContext ~> Error in addNewProject:", error.message);
+
+        }
+    };
+    //🚀 Remove specific project from current user 
+    const removeProject = async (projectTitle) => {
+        try {
+            if (currentUser_Data) {
+                const post_data = {
+                }
+            }
+        }
+        catch (error) {
+            console.error("❌ AuthContext ~> Error in removeProject:", error.message);
+        }
+    };
+
     return {
         // States
         currentUser,
         currentUser_Data,
         setCurrentUser,
         setCurrentUser_Data,
-        // Methods
+
+        // Functions to manage current user
         getUserSession,
         checkUserStatus,
         refreshCurrentUserData,
@@ -263,6 +334,7 @@ const useAuthActions = ({
         logoutUser,
         registerUser,
         updateUserProfile,
+        addNewProject
     }
 };
 

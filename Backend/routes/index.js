@@ -27,6 +27,7 @@ const routeGroups = [
         files: [
             "Update_Current_User_Profile",
             "getALL_User_Notifications",
+            "addNewProject",
         ]
     },
     {
