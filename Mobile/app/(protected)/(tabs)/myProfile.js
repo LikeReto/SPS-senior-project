@@ -45,6 +45,7 @@ export default function MyProfileScreen() {
   const handleStatusChange = (status) => {
     setUser_Status(status);        // local
     updateUserStatus(status);      // socket real-time
+    
   };
 
   // Refresh
@@ -85,6 +86,7 @@ export default function MyProfileScreen() {
             isDark={darkMode === "light" ? false : true}
             currentUser={currentUser}
             currentUser_Data={currentUser_Data}
+            liveStatus={liveStatus}
             App_Language={App_Language}
           />
 
@@ -102,6 +104,13 @@ export default function MyProfileScreen() {
             projects={currentUser_Data?.User_Projects || []}
             App_Language={App_Language}
             onAddProject={addNewProject}   // ✨ FIX
+          />
+
+          {/* --- User Reviews Section --- */}
+          <UserReviews
+            userData={currentUser_Data}
+            isDark={darkMode === "dark"}
+            App_Language={App_Language}
           />
         </>
       ) : (
@@ -148,12 +157,7 @@ export default function MyProfileScreen() {
         App_Language={App_Language}
       />
 
-      {/* --- User Reviews Section --- */}
-      <UserReviews
-        userData={currentUser_Data}
-        isDark={darkMode === "dark"}
-        App_Language={App_Language}
-      />
+
     </ScrollView>
   );
 }

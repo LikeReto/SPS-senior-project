@@ -43,7 +43,7 @@ export default function Rating({ value = 0, reviews = 0, size = 16, isDark }) {
           color: isDark ? "#aaa" : "#555",
         }}
       >
-        {clamped.toFixed(2)} ({reviews})
+        {clamped.toFixed(2)}
       </Text>
     </View>
   );

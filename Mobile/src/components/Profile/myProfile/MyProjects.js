@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+
 import AddProjectModal from "@/src/components/Sheets/AddProjectModal";
 import ProjectList from "@/src/components/Profile/common/Projects/ProjectList";
 
@@ -19,72 +20,73 @@ export default function MyProjects({
   onDeleteProject,
 }) {
   const [modalVisible, setModalVisible] = useState(false);
+  const isArabic = App_Language.startsWith("ar");
 
   return (
-    <View style={{ marginHorizontal: 20, marginTop: 20 }}>
-      {/* HEADER */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+    <View style={{ marginHorizontal: 20, marginTop: 30 }}>
+      
+      {/* ================= HEADER ================= */}
+      <View style={styles.header}>
         <Text
-          style={{
-            fontSize: 17,
-            fontWeight: "700",
-            color: isDark ? "white" : "#111",
-          }}
+          style={[
+            styles.title,
+            { color: isDark ? "#fff" : "#111" },
+          ]}
         >
-          {App_Language.startsWith("ar") ? "مشاريعي" : "My Projects"}
+          {isArabic ? "مشاريعي" : "My Projects"}
         </Text>
 
-        {/* Add Button if the user ALREADY has some projects */}
         {projects.length > 0 && (
           <TouchableOpacity
             onPress={() => setModalVisible(true)}
             style={[
-              styles.addCard,
-              { backgroundColor: isDark ? "#1a1a1a" : "#e6f9f0" },
+              styles.addBtn,
+              {
+                backgroundColor: isDark
+                  ? "rgba(255,255,255,0.08)"
+                  : "rgba(16,185,129,0.10)",
+              },
             ]}
           >
             <Ionicons
               name="add"
-              size={24}
+              size={22}
               color={isDark ? "#fff" : "#10b981"}
             />
           </TouchableOpacity>
         )}
       </View>
 
-      {/* IF user has NO projects */}
+      {/* ================= NO PROJECTS ================= */}
       {projects.length === 0 ? (
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
-          style={{
-            backgroundColor: isDark ? "#1a1a1a" : "#e6f9f0",
-            width: 110,
-            height: 140,
-            borderRadius: 12,
-            justifyContent: "center",
-            alignItems: "center",
-            marginTop: 12,
-          }}
+          style={[
+            styles.emptyCard,
+            {
+              backgroundColor: isDark
+                ? "rgba(255,255,255,0.06)"
+                : "rgba(16,185,129,0.10)",
+            },
+          ]}
         >
           <Ionicons
-            name="add"
-            size={32}
+            name="add-circle"
+            size={34}
             color={isDark ? "#fff" : "#10b981"}
           />
           <Text
-            style={{ color: isDark ? "#fff" : "#10b981", marginTop: 6 }}
+            style={{
+              marginTop: 6,
+              fontSize: 14,
+              color: isDark ? "#fff" : "#10b981",
+              fontWeight: "600",
+            }}
           >
-            {App_Language.startsWith("ar") ? "أضف مشروع" : "Add Project"}
+            {isArabic ? "أضف مشروع" : "Add Project"}
           </Text>
         </TouchableOpacity>
       ) : (
-        /* User has projects → show list */
         <ProjectList
           projects={projects}
           isDark={isDark}
@@ -96,7 +98,7 @@ export default function MyProjects({
         />
       )}
 
-      {/* ADD PROJECT MODAL */}
+      {/* ================= ADD PROJECT MODAL ================= */}
       <AddProjectModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
@@ -112,11 +114,31 @@ export default function MyProjects({
 }
 
 const styles = StyleSheet.create({
-  addCard: {
-    width: 33,
-    height: 33,
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  title: {
+    fontSize: 18,
+    fontWeight: "800",
+  },
+
+  addBtn: {
+    width: 38,
+    height: 38,
     borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
+  },
+
+  emptyCard: {
+    width: 130,
+    height: 160,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 12,
   },
 });

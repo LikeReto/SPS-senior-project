@@ -6,6 +6,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { saveSearchQuery } from "@/src/hooks/Search/SearchHistoryService";
 
 export default function SearchHeader({
   query,
@@ -28,7 +29,10 @@ export default function SearchHeader({
       {/* Search Input */}
       <TextInput
         value={query}
-        onChangeText={setQuery}
+        onChangeText={(text) => {
+          setQuery(text);
+          saveSearchQuery(text);   // 🔥 save every search
+        }}
         placeholder={
           App_Language.startsWith("ar")
             ? "البحث عن مقدمي الخدمات..."

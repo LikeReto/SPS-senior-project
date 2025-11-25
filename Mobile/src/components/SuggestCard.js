@@ -1,100 +1,156 @@
 import React, { memo } from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
-import { getStatusColor } from "@/src/utils/USER/statusHelpers";
-import { DEFAULT_PROFILE_PIC } from "@/src/constants/aConstants";
+import { Ionicons } from "@expo/vector-icons";
 import Rating from "@/src/components/common/Rating";
 import DistancePill from "@/src/components/common/DistancePill";
+import { DEFAULT_PROFILE_PIC } from "@/src/constants/aConstants";
+import { getStatusColor } from "@/src/utils/USER/statusHelpers";
 
-
-function SuggestCard({ App_Language, item, distance, onPress, isDark, isCurrentUser, userStatus }) {
+function SuggestCard({
+  App_Language,
+  item,
+  distance,
+  onPress,
+  isDark,
+  isCurrentUser,
+  userStatus
+}) {
   if (!item) return null;
 
   const statusColor = getStatusColor(userStatus);
 
-  // ⭐ SAFE IMAGE
   const imageUri =
     item?.User_Profile_Picture && item.User_Profile_Picture !== ""
       ? item.User_Profile_Picture
       : DEFAULT_PROFILE_PIC;
 
-  // ⭐ SKILLS PREVIEW
   const skills =
-    Array.isArray(item?.User_Skills) && item.User_Skills?.length > 0
+    Array.isArray(item?.User_Skills) && item.User_Skills.length > 0
       ? item.User_Skills.slice(0, 2).join(" • ")
       : null;
 
+  const textColor = isDark ? "#fff" : "#111";
+  const secondary = isDark ? "#b7b7b7" : "#666";
+
+  // 🔵 Futuristic blue glow
+  const neonGlow = isDark
+    ? {
+      shadowColor: "#3b82f6",
+      shadowOpacity: 0.35,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 0 },
+    }
+    : {};
+
   return (
     <TouchableOpacity
+      activeOpacity={0.92}
+      onPress={onPress}
       style={[
         styles.card,
         {
-          backgroundColor: isDark ? "#1a1a1a" : "#fff",
-          borderColor: isCurrentUser ? "#10b981" : "#BB1313FF",
-          shadowColor: isDark ? "#000" : "#10b981",
+          backgroundColor: isDark
+            ? "rgba(25,25,25,0.82)"
+            : "rgba(255,255,255,0.92)",
+          borderColor: "rgba(59,130,246,0.45)", // soft neon blue
         },
+        neonGlow,
       ]}
-      onPress={onPress}
-      activeOpacity={0.9}
     >
-      <View style={styles.imageWrapper}>
-        <Image
-          source={typeof imageUri === "string" ? { uri: imageUri } : imageUri}
-          style={styles.image}
-        />
+      {/* ================= TOP ================= */}
+      <View style={styles.topRow}>
+        {/* Avatar */}
+        <View style={styles.avatarWrapper}>
+          <Image
+            source={typeof imageUri === "string" ? { uri: imageUri } : imageUri}
+            style={styles.avatar}
+          />
 
-        {/* STATUS DOT */}
-        <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+          {/* Status */}
+          <View
+            style={[styles.statusDot, { backgroundColor: statusColor }]}
+          />
+        </View>
+
+        {/* Suggested Chip */}
+        <View style={styles.suggestChip}>
+          <View
+            style={{
+              flexDirection: "row", alignItems: "center",
+            }}
+          >
+            <Ionicons name="sparkles" size={14} color="#3b82f6" />
+            <Text style={styles.suggestText}>
+              {App_Language.startsWith("ar") ? "مقترح لك" : "Suggested"}
+            </Text>
+          </View>
+          {isCurrentUser && (
+            <Text
+              style={[
+                styles.selfTag,
+                { color: isDark ? "#3b82f6" : "#2563eb" },
+              ]}
+            >
+              {App_Language.startsWith("ar") ? "(أنت)" : "(You)"}
+            </Text>
+          )}
+        </View>
       </View>
 
-      {/* NAME */}
-      <Text style={[styles.name, { color: isDark ? "white" : "#111" }]}>
-        {item?.User_Name?.length > 11
-          ? item.User_Name.substring(0, 11) + "..."
+      {/* ================= NAME ================= */}
+      <Text style={[styles.name, { color: textColor }]} numberOfLines={1}>
+        {item?.User_Name?.length > 18
+          ? item.User_Name.slice(0, 18) + "…"
           : item?.User_Name}
       </Text>
 
-      {/* JOB */}
+      {/* ================= JOB ================= */}
       {item?.User_Job && (
-        <Text style={[styles.job, { color: isDark ? "#10b981" : "#00a36c" }]}>
-          {item?.User_Job}
-        </Text>
-      )}
-
-      {/* FREELANCER BADGE */}
-      {item?.User_Freelancer && (
-        <Text style={styles.freelancerBadge}>
-          {App_Language.startsWith("ar") ? "عمل حر ⭐" : "⭐ Freelancer"}
-        </Text>
-      )}
-
-      {/* SKILLS PREVIEW */}
-      {skills && (
         <Text
           style={[
-            styles.skills,
-            { color: isDark ? "#bbb" : "#666" },
+            styles.job,
+            { color: isDark ? "#3b82f6" : "#2563eb" },
           ]}
+          numberOfLines={1}
+        >
+          {item.User_Job}
+        </Text>
+      )}
+
+      {/* ================= FREELANCER BADGE ================= */}
+      {item?.User_Freelancer && (
+        <View style={styles.freelancerBadge}>
+          <Ionicons name="star" size={13} color="#ffd700" />
+          <Text style={styles.freelancerText}>
+            {App_Language.startsWith("ar") ? "عمل حر" : "Freelancer"}
+          </Text>
+        </View>
+      )}
+
+      {/* ================= SKILLS ================= */}
+      {skills && (
+        <Text
+          style={[styles.skills, { color: secondary }]}
           numberOfLines={2}
         >
           {skills}
         </Text>
       )}
 
-      {/* ⭐ RATING (Reusable Component) */}
+      {/* ================= RATING ================= */}
       <Rating
         value={item?.User_Rating}
         reviews={Array.isArray(item?.User_Reviews) ? item.User_Reviews.length : 0}
-        size={16}
+        size={15}
         isDark={isDark}
       />
 
-      {/* DISTANCE */}
+      {/* ================= DISTANCE ================= */}
       <DistancePill
         distance={distance}
         App_Language={App_Language}
         isDark={isDark}
       />
-
     </TouchableOpacity>
   );
 }
@@ -103,25 +159,37 @@ export default memo(SuggestCard);
 
 const styles = StyleSheet.create({
   card: {
-    width: 165,
-    height: 260,
-    borderRadius: 20,
+    width: 185,
+    borderRadius: 22,
+    padding: 15,
     marginRight: 16,
-    alignItems: "center",
-    justifyContent: "flex-start",
-    shadowOpacity: 0.3,
+    marginLeft: 8,
+    borderWidth: 1.3,
+    shadowOpacity: 0.23,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
-    padding: 12,
+    elevation: 3,
   },
-  imageWrapper: { position: "relative" },
-  image: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: 10,
-    backgroundColor: "#ddd",
+
+  /* TOP */
+  topRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+
+  /* AVATAR */
+  avatarWrapper: {
+    width: 68,
+    height: 68,
+    borderRadius: 20,
+    overflow: "hidden",
+    position: "relative",
+    backgroundColor: "#e6e6e6",
+  },
+  avatar: {
+    width: "100%",
+    height: "100%",
   },
   statusDot: {
     width: 14,
@@ -133,18 +201,56 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#fff",
   },
-  name: { fontSize: 15, fontWeight: "600", textAlign: "center" },
-  job: { fontSize: 13, marginTop: 2, textAlign: "center" },
+
+  /* CHIP */
+  suggestChip: {
+    flexDirection: "column",
+    alignItems: "center",
+    backgroundColor: "rgba(59,130,246,0.13)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  suggestText: {
+    marginLeft: 4,
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#3b82f6",
+  },
+
+  /* TEXTS */
+  name: {
+    marginTop: 12,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  job: {
+    marginTop: 4,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+
+  /* FREELANCER */
   freelancerBadge: {
-    fontSize: 12,
-    color: "#10b981",
-    marginTop: 4,
-    fontWeight: "bold",
+    marginTop: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,204,0,0.12)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
   },
+  freelancerText: {
+    marginLeft: 6,
+    fontWeight: "700",
+    fontSize: 12,
+    color: "#ffd700",
+  },
+
+  /* SKILLS */
   skills: {
-    marginTop: 4,
-    fontSize: 12,
-    textAlign: "center",
+    marginTop: 6,
+    fontSize: 11,
+    lineHeight: 15,
   },
-  distance: { marginTop: 4, fontSize: 12 },
 });

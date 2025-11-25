@@ -9,7 +9,7 @@ router.get("/", async (request, response) => {
 router.post("/", async (request, response) => {
     try {
         // get all users data
-        const providers = await UserModel.find({ User_Permission: "user" }).select("-__v -createdAt -updatedAt");
+        const providers = await UserModel.find({ User_Permission: "user" }).select("-__v -updatedAt");
         
         return response.status(200).json({
             success: true,

@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
-  View,
   ScrollView,
   TouchableOpacity,
   Image,
+  View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+
 import ProjectDetailsModal from "./ProjectDetailsModal";
 
 export default function ProjectList({
@@ -21,128 +22,100 @@ export default function ProjectList({
 }) {
   const [selectedProject, setSelectedProject] = useState(null);
 
-  const openModal = (project) => setSelectedProject(project);
-  const closeModal = () => setSelectedProject(null);
-
   const isArabic = App_Language.startsWith("ar");
+
+  const openModal = (p) => setSelectedProject(p);
+  const closeModal = () => setSelectedProject(null);
 
   return (
     <>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingVertical: 15, paddingLeft: 2 }}
+        contentContainerStyle={styles.scroll}
       >
-        {projects.length > 0 ? (
-          projects.map((project, i) => (
-            <TouchableOpacity
-              key={i}
-              activeOpacity={0.9}
-              onPress={() => openModal(project)}
-              style={[
-                styles.card,
-                {
-                  backgroundColor: isDark ? "#111" : "#fff",
-                  shadowColor: isDark ? "#000" : "#444",
-                },
-              ]}
-            >
-              {/* IMAGE */}
-              <View style={styles.imageWrapper}>
-                <Image
-                  source={{ uri: project.Project_Image }}
-                  style={styles.projectImage}
-                />
+        {projects.map((project, i) => (
+          <TouchableOpacity
+            key={i}
+            activeOpacity={0.92}
+            onPress={() => openModal(project)}
+            style={[
+              styles.card,
+              {
+                backgroundColor: isDark
+                  ? "rgba(25,25,25,0.75)"
+                  : "rgba(255,255,255,0.92)",
+                shadowColor: isDark ? "#000" : "#10b981",
+              },
+            ]}
+          >
+            {/* IMAGE */}
+            <View style={styles.imageWrapper}>
+              <Image
+                source={{ uri: project.Project_Image }}
+                style={styles.image}
+              />
 
-                {/* TOP GRADIENT */}
-                <View style={styles.gradientTop} />
+              {/* Fade Overlay */}
+              <View style={styles.overlay} />
 
-                {/* TYPE BADGE */}
-                <View
-                  style={[
-                    styles.typeBadge,
-                    {
-                      backgroundColor: isDark
-                        ? "rgba(255,255,255,0.15)"
-                        : "rgba(0,0,0,0.18)",
-                    },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color: isDark ? "#fff" : "#fff",
-                      fontWeight: "700",
-                      fontSize: 11,
-                    }}
-                  >
-                    {project.Project_Type}
-                  </Text>
-                </View>
-
-                {/* PRICE BADGE */}
-                <View style={styles.priceBadge}>
-                  <Text style={styles.priceText}>
-                    {project.Project_Price} SAR
-                  </Text>
-                </View>
+              {/* TYPE */}
+              <View style={styles.typeBadge}>
+                <Text style={styles.typeTxt}>{project.Project_Type}</Text>
               </View>
 
-              {/* TITLE */}
-              <Text
-                numberOfLines={1}
-                style={[
-                  styles.title,
-                  { color: isDark ? "#fff" : "#111" },
-                ]}
-              >
-                {project.Project_Title}
-              </Text>
-
-              {/* SMALL DESCRIPTION PREVIEW */}
-              <Text
-                numberOfLines={1}
-                style={[
-                  styles.descPreview,
-                  { color: isDark ? "#aaa" : "#666" },
-                ]}
-              >
-                {project.Project_Description?.trim()
-                  ? project.Project_Description
-                  : isArabic
-                  ? "بدون وصف"
-                  : "No description"}
-              </Text>
-
-              {/* RATING PREVIEW (STATIC for now OR you can calculate average later) */}
-              <View style={styles.ratingRow}>
-                <Ionicons name="star" size={14} color="#facc15" />
-                <Text
-                  style={{
-                    color: isDark ? "#ccc" : "#444",
-                    marginLeft: 4,
-                    fontSize: 12,
-                    fontWeight: "600",
-                  }}
-                >
-                  4.5
+              {/* PRICE */}
+              <View style={styles.priceBadge}>
+                <Text style={styles.priceTxt}>
+                  {project.Project_Price} SAR
                 </Text>
               </View>
-            </TouchableOpacity>
-          ))
-        ) : (
-          <Text
-            style={{
-              color: isDark ? "#aaa" : "#888",
-              marginTop: 15,
-              marginLeft: 14,
-            }}
-          >
-            {isArabic ? "لا توجد مشاريع" : "No projects"}
-          </Text>
-        )}
+            </View>
+
+            {/* TITLE */}
+            <Text
+              numberOfLines={1}
+              style={[
+                styles.title,
+                { color: isDark ? "#fff" : "#111" },
+              ]}
+            >
+              {project.Project_Title}
+            </Text>
+
+            {/* DESC PREVIEW */}
+            <Text
+              numberOfLines={1}
+              style={[
+                styles.desc,
+                { color: isDark ? "#bbb" : "#666" },
+              ]}
+            >
+              {project.Project_Description?.trim()
+                ? project.Project_Description
+                : isArabic
+                ? "بدون وصف"
+                : "No description"}
+            </Text>
+
+            {/* RATING PREVIEW */}
+            <View style={styles.ratingRow}>
+              <Ionicons name="star" size={14} color="#facc15" />
+              <Text
+                style={{
+                  marginLeft: 6,
+                  color: isDark ? "#ccc" : "#444",
+                  fontSize: 12,
+                  fontWeight: "600",
+                }}
+              >
+                4.5
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
 
-      {/* PROJECT DETAILS MODAL */}
       {selectedProject && (
         <ProjectDetailsModal
           project={selectedProject}
@@ -160,78 +133,87 @@ export default function ProjectList({
 }
 
 const styles = StyleSheet.create({
-  card: {
-    width: 180,
-    borderRadius: 18,
-    marginRight: 16,
-    padding: 10,
-    paddingBottom: 12,
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
+  scroll: {
+    paddingVertical: 18,
+    paddingLeft: 2,
   },
 
+  card: {
+    width: 185,
+    borderRadius: 20,
+    padding: 12,
+    marginRight: 16,
+    borderWidth: 1,
+    borderColor: "rgba(16,185,129,0.35)",
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
+  },
+
+  /* IMAGE */
   imageWrapper: {
     width: "100%",
-    height: 110,
-    borderRadius: 14,
+    height: 120,
+    borderRadius: 16,
     overflow: "hidden",
     marginBottom: 10,
+    backgroundColor: "#ddd",
   },
-
-  projectImage: {
+  image: {
     width: "100%",
     height: "100%",
   },
-
-  gradientTop: {
+  overlay: {
     position: "absolute",
-    top: 0,
-    height: 55,
+    height: "55%",
     width: "100%",
-    backgroundColor: "rgba(0,0,0,0.32)",
+    top: 0,
+    backgroundColor: "rgba(0,0,0,0.25)",
   },
 
   typeBadge: {
     position: "absolute",
     top: 6,
     left: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    zIndex: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+  typeTxt: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 11,
   },
 
   priceBadge: {
     position: "absolute",
     top: 6,
     right: 6,
-    backgroundColor: "#10b981",
     paddingHorizontal: 10,
     paddingVertical: 3,
-    borderRadius: 8,
-    zIndex: 20,
+    borderRadius: 10,
+    backgroundColor: "#10b981",
   },
-
-  priceText: {
+  priceTxt: {
     color: "#fff",
-    fontWeight: "700",
     fontSize: 12,
+    fontWeight: "700",
   },
 
   title: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
   },
 
-  descPreview: {
+  desc: {
+    marginTop: 4,
     fontSize: 13,
-    marginTop: 3,
-    marginBottom: 6,
   },
 
   ratingRow: {
+    marginTop: 6,
     flexDirection: "row",
     alignItems: "center",
   },

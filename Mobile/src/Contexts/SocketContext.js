@@ -12,6 +12,7 @@ import { useAuth } from "./AuthContext";
 import {
   backendGetChats
 } from "@/src/api/Chats/Chats_Functions";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const SOCKET_URL = process.env.EXPO_PUBLIC_APP_API;
 const SocketContext = createContext({});
@@ -294,6 +295,8 @@ export const SocketProvider = ({ children }) => {
     (status) => {
       if (socketRef.current?.connected && currentUser?.$id) {
         socketRef.current.emit("updateStatus", { userId: currentUser.$id, status });
+        // update in local storage
+        AsyncStorage.setItem("User_Status", status);
       }
     },
     [currentUser]

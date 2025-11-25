@@ -6,6 +6,7 @@ import {
 } from "react-native";
 import WorkerCard from "@/src/components/WorkerCard";
 import { useUser2Store } from "@/src/hooks/CurrentPage_States/useGlobal_States";
+import { trackInteraction } from "@/src/hooks/Search/InteractionTracker";
 
 export default function WorkersList({
   filteredWorkers,
@@ -47,7 +48,10 @@ export default function WorkersList({
           item={item}
           distance={item.distance}
           isCurrentUser={item.User_$ID === currentUser?.$id}
-          onPress={() => navigateToWorker(item)}
+          onPress={async () => {
+            await trackInteraction("open_profile", item.User_$ID);
+            navigateToWorker(item);
+          }}
           isDark={darkMode !== "light"}
           userStatus={getUserStatus(item.User_$ID)}
           App_Language={App_Language}

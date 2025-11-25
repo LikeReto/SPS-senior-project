@@ -1,93 +1,160 @@
 import React, { memo } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+
 import Rating from "@/src/components/common/Rating";
 import DistancePill from "@/src/components/common/DistancePill";
 
 import {
   getStatusColor,
-  getStatusLabel
+  getStatusLabel,
 } from "@/src/utils/USER/statusHelpers";
 
 import { DEFAULT_PROFILE_PIC } from "@/src/constants/aConstants";
-import { Ionicons } from "@expo/vector-icons";
 
-function WorkerCard({ item, distance, onPress, App_Language, isDark, isCurrentUser, userStatus }) {
-
+function WorkerCard({
+  item,
+  distance,
+  onPress,
+  App_Language,
+  isDark,
+  isCurrentUser,
+  userStatus,
+}) {
   if (!item) return null;
 
-  // ⭐ SAFE IMAGE
   const imageUri =
     item?.User_Profile_Picture && item.User_Profile_Picture !== ""
       ? item.User_Profile_Picture
       : DEFAULT_PROFILE_PIC;
 
-  // ⭐ SKILLS PREVIEW
   const skills =
-    Array.isArray(item?.User_Skills) && item.User_Skills.length > 0
+    Array.isArray(item?.User_Skills) && item.User_Skills?.length > 0
       ? item.User_Skills.slice(0, 3).join(" • ")
       : null;
 
+  const textColor = isDark ? "#ffffff" : "#111";
+  const secondaryColor = isDark ? "#9ca3af" : "#666";
+  const jobColor = isDark ? "#34d399" : "#059669";
+
+  const neonShadow = isDark
+    ? {
+        shadowColor: getStatusColor(userStatus),
+        shadowOpacity: 0.35,
+        shadowRadius: 15,
+        shadowOffset: { width: 0, height: 0 },
+      }
+    : {};
+
   return (
     <TouchableOpacity
+      activeOpacity={0.92}
+      onPress={onPress}
       style={[
         styles.card,
         {
-          backgroundColor: isDark ? "#1a1a1a" : "#fff",
-          borderColor: isCurrentUser ? "#10b981" : "#BB1313FF",
-          shadowColor: isDark ? "#000" : "#10b981",
+          backgroundColor: isDark
+            ? "rgba(20,20,20,0.85)"
+            : "rgba(255,255,255,0.85)",
         },
+        neonShadow,
       ]}
-      onPress={onPress}
-      activeOpacity={0.9}
     >
       <View style={styles.row}>
-        <Image
-          source={typeof imageUri === "string"
-            ? { uri: imageUri }
-            : imageUri}
-          style={styles.image}
-        />
+        {/* AVATAR */}
+        <View style={styles.avatarContainer}>
+          <Image
+            source={
+              typeof imageUri === "string"
+                ? { uri: imageUri }
+                : imageUri
+            }
+            style={styles.avatar}
+          />
 
-        {/* STATUS DOT */}
-        <View style={[styles.statusDot, { backgroundColor: getStatusColor(userStatus) }]} />
+          {/* ONLINE STATUS */}
+          <View
+            style={[
+              styles.statusDot,
+              { backgroundColor: getStatusColor(userStatus) },
+            ]}
+          />
+        </View>
 
+        {/* RIGHT INFO */}
         <View style={styles.info}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-            {/* NAME */}
-            <Text style={[styles.name, { color: isDark ? "#fff" : "#111" }]}>
-              {item?.User_Name}
+          {/* NAME + BADGE */}
+          <View style={styles.topRow}>
+            <Text
+              style={[styles.name, { color: textColor }]}
+              numberOfLines={1}
+            >
+              {item.User_Name.length > 18
+                ? item.User_Name.slice(0, 18) + "…"
+                : item.User_Name}
             </Text>
-            {/* FREELANCER BADGE */}
+
             {item?.User_Freelancer && (
-              <View style={styles.freelancerBadge}>
-                <Ionicons name="star" size={14} color="#ffcc00" />
-                <Text style={styles.freelancerText}>
-                  {App_Language.startsWith("ar") ? "عمل حر" : "Freelancer"}
+              <View style={styles.badge}>
+                <Ionicons name="sparkles" size={13} color="#facc15" />
+                <Text style={styles.badgeText}>
+                  {App_Language.startsWith("ar")
+                    ? "مستقل"
+                    : "Freelancer"}
                 </Text>
               </View>
             )}
           </View>
 
+          {/* SELF TAG */}
+          {isCurrentUser && (
+            <Text
+              style={[
+                styles.selfTag,
+                { color: isDark ? "#38bdf8" : "#0284c7" },
+              ]}
+            >
+              {App_Language.startsWith("ar") ? "(أنت)" : "(You)"}
+            </Text>
+          )}
+
           {/* STATUS LABEL */}
-          <Text style={[styles.statusText, { color: getStatusColor(userStatus) }]}>
+          <Text
+            style={[
+              styles.statusText,
+              { color: getStatusColor(userStatus) },
+            ]}
+          >
             {getStatusLabel({
               userOnline: userStatus !== "offline",
               liveStatus: userStatus,
-              App_Language
+              App_Language,
             })}
           </Text>
 
           {/* JOB */}
-          {item?.User_Job &&
-            <Text style={[styles.job, { color: isDark ? "#10b981" : "#00a36c" }]}>
-              {item?.User_Job}
+          {item.User_Job && (
+            <Text
+              style={[styles.job, { color: jobColor }]}
+              numberOfLines={1}
+            >
+              {item.User_Job}
             </Text>
-          }
+          )}
 
           {/* SKILLS */}
           {skills && (
             <Text
-              style={[styles.skills, { color: isDark ? "#bbb" : "#666" }]}
+              style={[
+                styles.skills,
+                { color: secondaryColor },
+              ]}
               numberOfLines={2}
             >
               {skills}
@@ -97,8 +164,12 @@ function WorkerCard({ item, distance, onPress, App_Language, isDark, isCurrentUs
           {/* RATING */}
           <Rating
             value={item?.User_Rating}
-            reviews={Array.isArray(item?.User_Reviews) ? item.User_Reviews.length : 0}
-            size={16}
+            reviews={
+              Array.isArray(item?.User_Reviews)
+                ? item.User_Reviews.length
+                : 0
+            }
+            size={15}
             isDark={isDark}
           />
 
@@ -108,9 +179,6 @@ function WorkerCard({ item, distance, onPress, App_Language, isDark, isCurrentUs
             App_Language={App_Language}
             isDark={isDark}
           />
-
-
-
         </View>
       </View>
     </TouchableOpacity>
@@ -121,62 +189,104 @@ export default memo(WorkerCard);
 
 const styles = StyleSheet.create({
   card: {
-    marginHorizontal: 20,
-    marginVertical: 8,
-    padding: 14,
-    borderRadius: 16,
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    marginHorizontal: 18,
+    marginVertical: 10,
+    padding: 18,
+    borderRadius: 22,
+    borderWidth: 1.4,
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
     shadowOffset: { width: 0, height: 3 },
-    elevation: 4,
-
+    transform: [{ scale: 0.999 }],
   },
+
   row: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8
   },
-  image: {
-    width: 60,
-    height: 60,
-    borderRadius: 40,
-    marginBottom: 10,
-    backgroundColor: "#ddd",
+
+  /* AVATAR */
+  avatarContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 24,
+    overflow: "hidden",
+    position: "relative",
+    marginRight: 14,
+    backgroundColor: "#222",
   },
+  avatar: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 24,
+  },
+
   statusDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     position: "absolute",
     bottom: 4,
-    left: 46,
+    right: 4,
     borderWidth: 2,
     borderColor: "#fff",
   },
-  info: { flex: 1, flexDirection: "column" },
-  name: { fontSize: 16, fontWeight: "600" },
-  statusText: { fontSize: 12, fontWeight: "500", marginTop: 2 },
-  job: { fontSize: 13, marginVertical: 4 },
-  freelancerBadge: {
-    marginTop: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 204, 0, 0.10)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
+
+  /* RIGHT INFO */
+  info: {
+    flex: 1,
   },
 
-  freelancerText: {
-    marginLeft: 6,
-    color: "#ffcc00",
+  topRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  name: {
+    fontSize: 17,
     fontWeight: "700",
-    fontSize: 13,
+    letterSpacing: 0.3,
   },
-  skills: {
-    marginTop: 4,
+
+  selfTag: {
     fontSize: 11,
-    maxWidth: "90%",
+    marginTop: 2,
+    fontWeight: "600",
   },
-  distance: { marginTop: 4, fontSize: 12 },
+
+  statusText: {
+    fontSize: 12,
+    marginTop: 4,
+    fontWeight: "500",
+  },
+
+  job: {
+    fontSize: 13.5,
+    marginTop: 4,
+    fontWeight: "600",
+  },
+
+  /* BADGE */
+  badge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(250, 204, 21, 0.12)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 50,
+  },
+  badgeText: {
+    color: "#facc15",
+    marginLeft: 4,
+    fontWeight: "700",
+    fontSize: 12,
+  },
+
+  skills: {
+    fontSize: 12,
+    marginTop: 6,
+    opacity: 0.9,
+    lineHeight: 17,
+  },
 });

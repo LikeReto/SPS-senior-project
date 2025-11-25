@@ -26,7 +26,12 @@ export const AuthProvider = ({ children }) => {
 
     const { App_Language, changeLanguage } = useLanguage();
     const { darkMode, toggleDarkMode } = useDarkMode();
-    const { LocalStorage_Values, UpdateLocalStorage } = useLocalStorage();
+    const {
+        LocalStorage_Values,
+        UpdateLocalStorage,
+        User_Status,
+        setUser_Status
+    } = useLocalStorage();
     const { SecurityIssues, isBlurred } = useSecurityProtection();
 
     const {
@@ -46,7 +51,6 @@ export const AuthProvider = ({ children }) => {
     const [App_Loading, setApp_Loading] = useState(true);
     const [Providers, setProviders] = useState([]);
     const [location, setLocation] = useState(null);
-    const [User_Status, setUser_Status] = useState("online");
 
     // -----------------------
     // INITIALIZE APP

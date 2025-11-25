@@ -6,6 +6,8 @@ const useLocalStorage = () => {
   const [LocalStorage_Values, setLocalStorage_Values] = useState({
     onBoarded_finished: false,
   });
+  const [User_Status, setUser_Status] = useState("online");
+
 
   // ✅ Load stored values once when app loads
   useEffect(() => {
@@ -17,7 +19,7 @@ const useLocalStorage = () => {
           const parsed = JSON.parse(storedValues);
           setLocalStorage_Values(parsed);
           console.log('📂 LocalStorage values loaded:', parsed);
-        } 
+        }
         else {
           // ✅ Save default values if none exist
           await AsyncStorage.setItem(
@@ -31,6 +33,23 @@ const useLocalStorage = () => {
     };
 
     fetchValues();
+  }, []);
+
+  // get local User statuf from asyncstorage on app load
+  const getLocalUserStatus = useCallback(async () => {
+    try {
+      const status = await AsyncStorage.getItem("User_Status");
+      if (status) {
+        setUser_Status(status);
+        console.log("📂 User_Status loaded from LocalStorage:", status);
+      }
+    } catch (error) {
+      console.error("❌ Error loading User_Status from LocalStorage:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    getLocalUserStatus();
   }, []);
 
   // ✅ Update values (merge instead of overwrite)
@@ -51,7 +70,7 @@ const useLocalStorage = () => {
     }
   }, [LocalStorage_Values]);
 
-  return { LocalStorage_Values, UpdateLocalStorage };
+  return { LocalStorage_Values, UpdateLocalStorage, User_Status, setUser_Status };
 };
 
 export default useLocalStorage;

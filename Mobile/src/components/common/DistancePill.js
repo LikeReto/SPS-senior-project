@@ -3,14 +3,15 @@ import { View, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function Distance({ distance, App_Language, isDark }) {
-  // No coords saved in DB
   if (distance == null) {
     return (
-      <Text style={{
-        color: isDark ? "#aaa" : "#555",
-        marginTop: 6,
-        fontSize: 12
-      }}>
+      <Text
+        style={{
+          color: isDark ? "#aaa" : "#555",
+          marginTop: 6,
+          fontSize: 12,
+        }}
+      >
         {App_Language.startsWith("ar")
           ? "المسافة غير متوفرة"
           : "Distance unavailable"}
@@ -18,59 +19,59 @@ export default function Distance({ distance, App_Language, isDark }) {
     );
   }
 
-  const isVeryNear = distance <= 2;
-  const isNear = distance <= 10;
+  const isVeryNear = distance <= 10;
+  const isNear = distance <= 30 && distance > 10;
 
   const bgColor = isVeryNear
-    ? "rgba(16,185,129,0.15)" // green
+    ? "rgba(16,185,129,0.15)"
     : isNear
-      ? "rgba(255,153,0,0.15)" // orange
-      : "rgba(224,49,49,0.15)"; // red
+    ? "rgba(255,153,0,0.15)"
+    : "rgba(224,49,49,0.15)";
 
   const textColor = isVeryNear
     ? "#10b981"
     : isNear
-      ? "#ff9900"
-      : "#e03131";
+    ? "#ff9900"
+    : "#e03131";
 
   const iconName = isVeryNear
     ? "location"
     : isNear
-      ? "navigate"
-      : "warning";
+    ? "navigate"
+    : "navigate-circle";
 
   const label = isVeryNear
     ? App_Language.startsWith("ar") ? "قريب جدًا" : "Very Near"
     : isNear
-      ? App_Language.startsWith("ar") ? "قريب" : "Near"
-      : App_Language.startsWith("ar") ? "بعيد" : "Far";
+    ? App_Language.startsWith("ar") ? "قريب" : "Near"
+    : App_Language.startsWith("ar") ? "بعيد" : "Far";
 
   return (
     <View
       style={{
         marginTop: 6,
         flexDirection: "row",
+        flexWrap: "wrap", // ⭐ ENABLE WRAPPING
         alignItems: "center",
-        justifyContent: "space-between",
+        gap: 10, // ⭐ Perfect spacing between pill + text
       }}
     >
-      {/* Distance number */}
+      {/* LEFT TEXT */}
       <Text
         style={{
           color: isDark ? "#aaa" : "#555",
           fontSize: 12,
-          marginRight: 10,
         }}
       >
         {distance.toFixed(1)} {App_Language.startsWith("ar") ? "كم 📍" : "km 📍"}
       </Text>
 
-      {/* Pill */}
+      {/* RIGHT PILL */}
       <View
         style={{
           flexDirection: "row",
-          flexWrap: "wrap",
           alignItems: "center",
+          flexWrap: "wrap",
           paddingHorizontal: 10,
           paddingVertical: 5,
           borderRadius: 14,
