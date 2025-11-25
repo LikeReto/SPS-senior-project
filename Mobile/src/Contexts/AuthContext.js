@@ -53,6 +53,8 @@ export const AuthProvider = ({ children }) => {
     // -----------------------
     useEffect(() => {
         (async () => {
+            const sessionExists = await checkUserStatus();
+
             await loadLocalStorageValues({
                 pathname,
                 LocalStorage_Values,
@@ -60,12 +62,14 @@ export const AuthProvider = ({ children }) => {
                 currentUser,
             });
 
+
             await initializeAppSettings({
-                checkUserStatus,
                 setLocation,
                 fetchWorkersData: () =>
                     fetchWorkersData(setProviders),
                 setApp_Loading,
+                currentUser: sessionExists,
+                App_Language,
             });
         })();
     }, []);

@@ -28,6 +28,7 @@ const routeGroups = [
             "Update_Current_User_Profile",
             "getALL_User_Notifications",
             "addNewProject",
+            "updateLocation_coords",
         ]
     },
     {

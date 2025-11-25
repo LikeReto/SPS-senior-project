@@ -35,23 +35,18 @@ export default function MySkills({
   }
 
   return (
-    <View style={{ marginHorizontal: 20, marginTop: 20 }}>
-      <Text style={{ fontSize: 17, fontWeight: "700", color: isDark ? "white" : "#111" }}>
-        {App_Language.startsWith("ar") ? "مهاراتي" : "My Skills"}
-      </Text>
-
-<ScrollView
+    <ScrollView
       showsVerticalScrollIndicator={true}
       contentContainerStyle={{
         flexDirection: "row",
         flexWrap: "wrap",
         alignItems: "center"
       }}
-      style={{ 
+      style={{
         maxHeight: 170,
         marginTop: 10
-        
-       }}>
+
+      }}>
       <View style={styles.skills}>
         {skills.length > 0 ? skills.map(renderSkillTag) : (
           <Text style={{ color: isDark ? "#aaa" : "#888" }}>
@@ -60,7 +55,6 @@ export default function MySkills({
         )}
       </View>
     </ScrollView>
-    </View>
   );
 }
 

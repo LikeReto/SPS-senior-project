@@ -1,5 +1,5 @@
 import { useAuth } from "@/src/Contexts/AuthContext";
-import ProfileEditableForm from "@/src/components/Profile/ProfileEditableForm";
+import ProfileEditableForm from "@/src/components/Profile/myProfile/ProfileEditableForm";
 
 export default function OnboardingScreen() {
     const { Expo_Router, UpdateLocalStorage, updateUserProfile } = useAuth();

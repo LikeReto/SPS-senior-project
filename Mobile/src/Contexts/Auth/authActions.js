@@ -9,7 +9,6 @@ import {
     Login_Current_User,
     logout_Current_User,
     upload_File_To_Storage,
-    delete_File_From_Storage
 } from "@/src/xAppWrite/Appwrite";
 
 import { backendUpdateUserInfo } from "@/src/api/CurrentUser/updateUserInfo";
@@ -59,7 +58,7 @@ const useAuthActions = ({
                     if (userDataResponse && userDataResponse.success === true) {
                         setCurrentUser_Data(userDataResponse.userData);
                         setCurrentUser(userSession);
-                        return true;
+                        return userSession;
                     }
                     else {
                         setCurrentUser(null);
@@ -88,9 +87,17 @@ const useAuthActions = ({
     //🙍🏻‍♂️ check user status method
     const checkUserStatus = async () => {
         try {
-            await getUserSession();
-
-            return false;
+            const sessionExists = await getUserSession();
+            if (sessionExists) {
+                console.log("✅ AuthContext ~> User is logged in.");
+                return sessionExists;
+            }
+            else {
+                console.log("ℹ️ AuthContext ~> No user session found.");
+                setCurrentUser(null);
+                setCurrentUser_Data(null);
+                return false;
+            }
         }
         catch (error) {
             console.error("❌ AuthContext ~> Error in checkUserStatus:", error.message);

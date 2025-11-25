@@ -16,13 +16,20 @@ import { useUser2Store } from "@/src/hooks/CurrentPage_States/useGlobal_States";
 import { useSocket } from "@/src/Contexts/SocketContext";
 
 export default function Home() {
-  const { Expo_Router, App_Language, currentUser, darkMode, location, Providers, fetchWorkersData } = useAuth();
+  const {
+    Expo_Router,
+    App_Language,
+    currentUser,
+    darkMode,
+    location,
+    Providers,
+    fetchWorkersData,
+  } = useAuth();
   const { getUserStatus } = useSocket();
 
   const [refreshing, setRefreshing] = useState(false);
   const [visibleCount, setVisibleCount] = useState(6);
   const maxLoadings = 12;
-  const [loading, setLoading] = useState(true);
 
   // --- Pull-to-refresh
   const onRefresh = useCallback(async () => {
@@ -37,31 +44,37 @@ export default function Home() {
   // --- Fetch on mount
   useEffect(() => {
     (async () => {
-      setLoading(true);
       await onRefresh();
-      setLoading(false);
     })();
   }, []);
 
-  // --- Memoized sorted Providers by distance
+  // --- Compute distance & sort
   const sortedWorkers = useMemo(() => {
     if (!Providers) return [];
     if (!location) return Providers;
 
-    return Providers
-      .map((w) => ({
-        ...w,
-        distance: getDistance(
-          location.latitude,
-          location.longitude,
-          w.latitude,
-          w.longitude
-        ),
-      }))
-      .sort((a, b) => a.distance - b.distance);
+    return Providers.map((w) => {
+      const lat = w?.User_Location_Coords?.latitude;
+      const lng = w?.User_Location_Coords?.longitude;
+
+      const distance =
+        lat && lng
+          ? getDistance(location.latitude, location.longitude, lat, lng)
+          : null;
+
+      return { ...w, distance };
+    }).sort((a, b) => {
+      if (a.distance == null) return 1;
+      if (b.distance == null) return -1;
+      return a.distance - b.distance;
+    });
   }, [Providers, location]);
 
-  const visibleWorkers = useMemo(() => sortedWorkers?.slice(0, visibleCount), [sortedWorkers, visibleCount]);
+  // --- nearest only
+  const visibleWorkers = sortedWorkers.slice(0, visibleCount);
+
+  // --- providers WITH distance (for suggested)
+  const validProviders = sortedWorkers.filter((w) => w.distance != null);
 
   // --- Load more
   const handleLoadMore = useCallback(() => {
@@ -73,26 +86,31 @@ export default function Home() {
   }, [visibleCount, maxLoadings, Expo_Router]);
 
   // --- Profile navigation
-  const handleProfilePress = useCallback(async (provider) => {
-    try {
-      if (provider?.User_$ID === currentUser?.$id) {
-        Expo_Router.push("/myProfile");
-      } else {
-        await useUser2Store.getState().setUser2(provider);
-        Expo_Router.push(`/worker/${provider.User_$ID}`);
+  const handleProfilePress = useCallback(
+    async (provider) => {
+      try {
+        if (provider?.User_$ID === currentUser?.$id) {
+          Expo_Router.push("/myProfile");
+        } else {
+          await useUser2Store.getState().setUser2(provider);
+          Expo_Router.push(`/worker/${provider.User_$ID}`);
+        }
+      } catch (error) {
+        console.log("Error handling profile press:", error);
       }
-    } catch (error) {
-      console.log("Error handling profile press:", error);
-    }
-  }, [currentUser, Expo_Router]);
+    },
+    [currentUser, Expo_Router]
+  );
 
-  // --- Render Worker with real-time status
+  // --- Render Worker Card
   const renderWorker = useCallback(
     ({ item }) => {
       const userStatus = getUserStatus(item?.User_$ID);
+
       return (
         <WorkerCard
           item={item}
+          distance={item.distance}
           onPress={() => handleProfilePress(item)}
           isCurrentUser={item.User_$ID === currentUser?.$id}
           isDark={darkMode !== "light"}
@@ -104,14 +122,16 @@ export default function Home() {
     [currentUser, darkMode, getUserStatus, handleProfilePress, App_Language]
   );
 
-  // --- Render Suggest Cards
+  // --- Render SuggestCard
   const renderSuggest = useCallback(
     ({ item }) => {
       const userStatus = getUserStatus(item?.User_$ID);
+
       return (
         <SuggestCard
           App_Language={App_Language}
           item={item}
+          distance={item.distance}
           onPress={() => handleProfilePress(item)}
           isCurrentUser={item.User_$ID === currentUser?.$id}
           isDark={darkMode !== "light"}
@@ -127,11 +147,13 @@ export default function Home() {
       data={visibleWorkers}
       keyExtractor={(item) => item.User_$ID}
       renderItem={renderWorker}
-      refreshing={refreshing}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10b981" />
       }
-      style={{ flex: 1, backgroundColor: darkMode === "light" ? "#fefefe" : "#0a0a0a" }}
+      style={{
+        flex: 1,
+        backgroundColor: darkMode === "light" ? "#fefefe" : "#0a0a0a",
+      }}
       contentContainerStyle={{ paddingBottom: 20 }}
       ListHeaderComponent={
         <>
@@ -143,24 +165,25 @@ export default function Home() {
             isDark={darkMode !== "light"}
           />
 
-          {Providers?.length > 0 && (
-            <FlatList
-              data={Providers?.slice(0, 10)}
-              horizontal
-              keyExtractor={(item) => item?.User_$ID}
-              renderItem={renderSuggest}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 12, marginTop: 8 }}
-            />
-          )}
+          <FlatList
+            data={validProviders.slice(0, 10)}
+            horizontal
+            keyExtractor={(item) => item.User_$ID}
+            renderItem={renderSuggest}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 12, marginTop: 8 }}
+          />
 
           <SectionTitle title="📍 Nearby Experts" isDark={darkMode !== "light"} />
         </>
       }
       ListFooterComponent={
-        visibleCount < sortedWorkers?.length && (
+        visibleCount < sortedWorkers.length && (
           <TouchableOpacity
-            style={[styles.viewMore, { backgroundColor: darkMode === "light" ? "#10b981" : "#1b1b1b" }]}
+            style={[
+              styles.viewMore,
+              { backgroundColor: darkMode === "light" ? "#10b981" : "#1b1b1b" },
+            ]}
             onPress={handleLoadMore}
           >
             <Text style={{ color: "#fff", fontWeight: "700" }}>Load More</Text>

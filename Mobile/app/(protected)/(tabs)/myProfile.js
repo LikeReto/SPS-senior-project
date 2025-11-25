@@ -11,10 +11,11 @@ import {
 } from "react-native";
 import { useSocket } from "@/src/Contexts/SocketContext";
 import StatusModal from "@/src/components/Sheets/ProfileStatus";
-import MyProfileHeader from "@/src/components/Profile/Header";
-import MyProfileCard from "@/src/components/Profile/profileCard";
-import MySkills from "@/src/components/Profile/My_Worker_Skills";
-import MyProjects from "@/src/components/Profile/MyProjects";
+import MyProfileHeader from "@/src/components/Profile/myProfile/Header";
+import MyProfileCard from "@/src/components/Profile/myProfile/profileCard";
+import MySkills from "@/src/components/Profile/myProfile/MySkills";
+import MyProjects from "@/src/components/Profile/myProfile/MyProjects";
+import UserReviews from "@/src/components/Profile/common/UserReviews";
 import { skillsList } from "@/src/constants/Degrees_Fields";
 
 export default function MyProfileScreen() {
@@ -144,6 +145,13 @@ export default function MyProfileScreen() {
         currentStatus={User_Status}
         onSelectStatus={(s) => handleStatusChange(s)}   // ✨ FIX
         darkMode={darkMode}
+        App_Language={App_Language}
+      />
+
+      {/* --- User Reviews Section --- */}
+      <UserReviews
+        userData={currentUser_Data}
+        isDark={darkMode === "dark"}
         App_Language={App_Language}
       />
     </ScrollView>

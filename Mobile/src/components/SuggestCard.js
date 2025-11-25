@@ -1,22 +1,15 @@
 import React, { memo } from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-
-import {
-  getStatusColor
-} from "@/src/utils/USER/statusHelpers";
+import { getStatusColor } from "@/src/utils/USER/statusHelpers";
 import { DEFAULT_PROFILE_PIC } from "@/src/constants/aConstants";
+import Rating from "@/src/components/common/Rating";
+import DistancePill from "@/src/components/common/DistancePill";
 
-function SuggestCard({ App_Language, item, onPress, isDark, isCurrentUser, userStatus }) {
+
+function SuggestCard({ App_Language, item, distance, onPress, isDark, isCurrentUser, userStatus }) {
   if (!item) return null;
 
   const statusColor = getStatusColor(userStatus);
-
-  // ⭐ SAFE RATING
-  const rating = Number(item?.User_Rating) || 0;
-  const fullStars = Math.floor(rating);
-  const halfStar = rating % 1 >= 0.5 ? 1 : 0;
-  const emptyStars = 5 - fullStars - halfStar;
 
   // ⭐ SAFE IMAGE
   const imageUri =
@@ -30,18 +23,13 @@ function SuggestCard({ App_Language, item, onPress, isDark, isCurrentUser, userS
       ? item.User_Skills.slice(0, 2).join(" • ")
       : null;
 
-  // ⭐ Reviews Count
-  const reviewsCount = Array.isArray(item?.User_Reviews)
-    ? item.User_Reviews?.length
-    : 4.2;
-
   return (
     <TouchableOpacity
       style={[
         styles.card,
         {
           backgroundColor: isDark ? "#1a1a1a" : "#fff",
-          borderColor: isCurrentUser === true ? "#10b981" : "#BB1313FF",
+          borderColor: isCurrentUser ? "#10b981" : "#BB1313FF",
           shadowColor: isDark ? "#000" : "#10b981",
         },
       ]}
@@ -49,32 +37,34 @@ function SuggestCard({ App_Language, item, onPress, isDark, isCurrentUser, userS
       activeOpacity={0.9}
     >
       <View style={styles.imageWrapper}>
-        <Image source={typeof imageUri === "string"
-          ? { uri: imageUri }
-          : imageUri
-        } style={styles.image} />
+        <Image
+          source={typeof imageUri === "string" ? { uri: imageUri } : imageUri}
+          style={styles.image}
+        />
+
         {/* STATUS DOT */}
         <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
       </View>
 
       {/* NAME */}
       <Text style={[styles.name, { color: isDark ? "white" : "#111" }]}>
-        {item?.User_Name.length > 11
-          ? item?.User_Name.substring(0, 11) + "..." : item?.User_Name
-          || "Unknown"
-        }
+        {item?.User_Name?.length > 11
+          ? item.User_Name.substring(0, 11) + "..."
+          : item?.User_Name}
       </Text>
 
       {/* JOB */}
-      {item?.User_Job &&
+      {item?.User_Job && (
         <Text style={[styles.job, { color: isDark ? "#10b981" : "#00a36c" }]}>
           {item?.User_Job}
         </Text>
-      }
+      )}
 
       {/* FREELANCER BADGE */}
       {item?.User_Freelancer && (
-        <Text style={styles.freelancerBadge}>{App_Language.startsWith("ar") ? "عمل حر ⭐" : "⭐ Freelancer"}</Text>
+        <Text style={styles.freelancerBadge}>
+          {App_Language.startsWith("ar") ? "عمل حر ⭐" : "⭐ Freelancer"}
+        </Text>
       )}
 
       {/* SKILLS PREVIEW */}
@@ -90,36 +80,21 @@ function SuggestCard({ App_Language, item, onPress, isDark, isCurrentUser, userS
         </Text>
       )}
 
-      {/* RATING */}
-      <View style={styles.ratingContainer}>
-        {[...Array(fullStars)].map((_, i) => (
-          <Ionicons key={"full" + i} name="star" size={16} color="#FFD700" />
-        ))}
-
-        {halfStar === 1 && (
-          <Ionicons name="star-half" size={16} color="#FFD700" />
-        )}
-
-        {[...Array(emptyStars)].map((_, i) => (
-          <Ionicons key={"empty" + i} name="star-outline" size={16} color="#FFD700" />
-        ))}
-
-        <Text
-          style={[
-            styles.ratingText,
-            { color: isDark ? "#aaa" : "#555" },
-          ]}
-        >
-          {rating.toFixed(1)} ({reviewsCount})
-        </Text>
-      </View>
+      {/* ⭐ RATING (Reusable Component) */}
+      <Rating
+        value={item?.User_Rating}
+        reviews={Array.isArray(item?.User_Reviews) ? item.User_Reviews.length : 0}
+        size={16}
+        isDark={isDark}
+      />
 
       {/* DISTANCE */}
-      {item?.distance !== undefined && (
-        <Text style={[styles.distance, { color: isDark ? "#aaa" : "#555" }]}>
-          {item.distance} km away
-        </Text>
-      )}
+      <DistancePill
+        distance={distance}
+        App_Language={App_Language}
+        isDark={isDark}
+      />
+
     </TouchableOpacity>
   );
 }
@@ -140,9 +115,7 @@ const styles = StyleSheet.create({
     elevation: 5,
     padding: 12,
   },
-  imageWrapper: {
-    position: "relative",
-  },
+  imageWrapper: { position: "relative" },
   image: {
     width: 80,
     height: 80,
@@ -173,14 +146,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: "center",
   },
-  ratingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 6,
-  },
-  ratingText: { marginLeft: 4, fontSize: 12 },
-  distance: {
-    marginTop: 6,
-    fontSize: 12,
-  },
+  distance: { marginTop: 4, fontSize: 12 },
 });

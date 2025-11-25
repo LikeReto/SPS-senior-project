@@ -107,7 +107,14 @@ const User_Schema = new mongoose.Schema({
     User_Freelancer: {
         type: Boolean,
         default: false,
-    }
+    },
+    User_Location_Coords: {
+        type: Object,
+        default: {
+            latitude: null,
+            longitude: null,
+        },
+    },
 },
     { timestamps: true }
 );

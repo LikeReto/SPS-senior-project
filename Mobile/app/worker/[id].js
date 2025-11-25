@@ -7,8 +7,10 @@ import { DEFAULT_PROFILE_PIC } from "@/src/constants/aConstants";
 
 import WorkerHeader from "@/src/components/Profile/Worker/WorkerHeader";
 import WorkerProfileCard from "@/src/components/Profile/Worker/WorkerProfileCard";
-import WorkerSkills from "@/src/components/Profile/My_Worker_Skills";
+import WorkerSkills from "@/src/components/Profile/Worker/WorkerSkills";
 import WorkerProjects from "@/src/components/Profile/Worker/WorkerProjects";
+import UserReviews from "@/src/components/Profile/common/UserReviews";
+
 import { skillsList } from "@/src/constants/Degrees_Fields";
 
 import { useSocket } from "@/src/Contexts/SocketContext";
@@ -102,6 +104,12 @@ export default function WorkerScreen() {
       <WorkerProjects
         isDark={darkMode === "light" ? false : true}
         projects={worker.User_Projects || []}
+        App_Language={App_Language}
+        isCurrentUser={false}
+      />
+      <UserReviews
+        userData={worker}
+        isDark={darkMode === "dark"}
         App_Language={App_Language}
       />
     </ScrollView>

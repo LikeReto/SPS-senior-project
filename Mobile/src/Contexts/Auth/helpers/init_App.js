@@ -1,31 +1,49 @@
 import * as Location from "expo-location";
+import { updateUserLocationInDB } from "@/src/api/CurrentUser/updateUserLocationInDB";
+import { checkLocation } from "@/src/hooks/Security/Location_Permission";
 
-export const requestLocationPermission = async () => {
-  let { status } = await Location.requestForegroundPermissionsAsync();
-  return status === "granted";
-};
+
 
 export const initializeAppSettings = async ({
-  checkUserStatus,
   setLocation,
   fetchWorkersData,
   setApp_Loading,
+  currentUser,
+  App_Language,
 }) => {
   setApp_Loading(true);
 
   try {
-    await checkUserStatus();
 
-    const hasPermission = await requestLocationPermission();
-    if (hasPermission) {
-      let loc = await Location.getCurrentPositionAsync({});
+    const hasPermission = await checkLocation({ App_Language });
+
+    if (hasPermission && hasPermission.granted) {
+      const loc = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = loc.coords;
+
+      // update local state
       setLocation(loc.coords);
+
+      // update MongoDB
+      if (currentUser?.$id) {
+        await updateUserLocationInDB({
+          latitude,
+          longitude,
+          User_$ID: currentUser.$id,
+        });
+        console.log("✅ initializeAppSettings: User location updated in DB.");
+      }
+      else {
+        console.warn("⚠️ initializeAppSettings: No currentUser found, cannot update location in DB.");
+      }
     }
 
     await fetchWorkersData();
-  } catch (error) {
+  }
+  catch (error) {
     console.error("❌ initializeAppSettings error:", error.message);
-  } finally {
+  }
+  finally {
     setApp_Loading(false);
   }
 };

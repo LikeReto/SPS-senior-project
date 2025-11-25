@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Rating from "@/src/components/common/Rating";
+import DistancePill from "@/src/components/common/DistancePill";
 
 import {
   getStatusColor,
@@ -8,17 +9,11 @@ import {
 } from "@/src/utils/USER/statusHelpers";
 
 import { DEFAULT_PROFILE_PIC } from "@/src/constants/aConstants";
+import { Ionicons } from "@expo/vector-icons";
 
-function WorkerCard({ item, onPress, App_Language, isDark, isCurrentUser, userStatus }) {
+function WorkerCard({ item, distance, onPress, App_Language, isDark, isCurrentUser, userStatus }) {
 
   if (!item) return null;
-
-
-  // ⭐ SAFE RATING
-  const rating = Number(item?.User_Rating) || 0;
-  const fullStars = Math.floor(rating);
-  const halfStar = rating % 1 >= 0.5 ? 1 : 0;
-  const emptyStars = 5 - fullStars - halfStar;
 
   // ⭐ SAFE IMAGE
   const imageUri =
@@ -31,11 +26,6 @@ function WorkerCard({ item, onPress, App_Language, isDark, isCurrentUser, userSt
     Array.isArray(item?.User_Skills) && item.User_Skills.length > 0
       ? item.User_Skills.slice(0, 3).join(" • ")
       : null;
-
-  // ⭐ REVIEWS COUNT
-  const reviewsCount = Array.isArray(item?.User_Reviews)
-    ? item.User_Reviews.length
-    : 0;
 
   return (
     <TouchableOpacity
@@ -69,7 +59,12 @@ function WorkerCard({ item, onPress, App_Language, isDark, isCurrentUser, userSt
             </Text>
             {/* FREELANCER BADGE */}
             {item?.User_Freelancer && (
-              <Text style={styles.freelancerBadge}>{App_Language.startsWith("ar") ? "عمل حر ⭐" : "⭐ Freelancer"}</Text>
+              <View style={styles.freelancerBadge}>
+                <Ionicons name="star" size={14} color="#ffcc00" />
+                <Text style={styles.freelancerText}>
+                  {App_Language.startsWith("ar") ? "عمل حر" : "Freelancer"}
+                </Text>
+              </View>
             )}
           </View>
 
@@ -100,28 +95,22 @@ function WorkerCard({ item, onPress, App_Language, isDark, isCurrentUser, userSt
           )}
 
           {/* RATING */}
-          <View style={styles.ratingContainer}>
-            {[...Array(fullStars)].map((_, i) => (
-              <Ionicons key={"full" + i} name="star" size={16} color="#FFD700" />
-            ))}
-            {halfStar === 1 && (
-              <Ionicons name="star-half" size={16} color="#FFD700" />
-            )}
-            {[...Array(emptyStars)].map((_, i) => (
-              <Ionicons key={"empty" + i} name="star-outline" size={16} color="#FFD700" />
-            ))}
-
-            <Text style={[styles.ratingText, { color: isDark ? "#aaa" : "#555" }]}>
-              {rating.toFixed(1)} ({reviewsCount})
-            </Text>
-          </View>
+          <Rating
+            value={item?.User_Rating}
+            reviews={Array.isArray(item?.User_Reviews) ? item.User_Reviews.length : 0}
+            size={16}
+            isDark={isDark}
+          />
 
           {/* DISTANCE */}
-          {item?.distance !== undefined && (
-            <Text style={[styles.distance, { color: isDark ? "#aaa" : "#555" }]}>
-              {item.distance.toFixed(1)} km away
-            </Text>
-          )}
+          <DistancePill
+            distance={distance}
+            App_Language={App_Language}
+            isDark={isDark}
+          />
+
+
+
         </View>
       </View>
     </TouchableOpacity>
@@ -140,12 +129,12 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 4,
-    
+
   },
-  row: { 
-    flexDirection: "row", 
+  row: {
+    flexDirection: "row",
     alignItems: "center",
-    gap: 8 
+    gap: 8
   },
   image: {
     width: 60,
@@ -169,17 +158,25 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 12, fontWeight: "500", marginTop: 2 },
   job: { fontSize: 13, marginVertical: 4 },
   freelancerBadge: {
-    marginTop: 2,
-    fontSize: 12,
-    color: "#10b981",
-    fontWeight: "600",
+    marginTop: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 204, 0, 0.10)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+
+  freelancerText: {
+    marginLeft: 6,
+    color: "#ffcc00",
+    fontWeight: "700",
+    fontSize: 13,
   },
   skills: {
     marginTop: 4,
     fontSize: 11,
     maxWidth: "90%",
   },
-  ratingContainer: { flexDirection: "row", alignItems: "center", marginTop: 6 },
-  ratingText: { marginLeft: 4, fontSize: 12 },
   distance: { marginTop: 4, fontSize: 12 },
 });

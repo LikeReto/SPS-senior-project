@@ -1,27 +1,26 @@
 /**
- * Worker Projects (public view)
+ * Worker skills (public view)
  */
 import { StyleSheet, Text, View } from "react-native";
-import ProjectList from "@/src/components/Profile/common/Projects/ProjectList";
+import SkillsList from "@/src/components/Profile/common/Skills/SkillsList";
 
-export default function WorkerProjects({
+export default function WorkerSkills({
   isDark,
-  projects,
-  onRequestProject,
+  skills,
+  allSkills,
   App_Language,
 }) {
   return (
     <View style={{ marginHorizontal: 20, marginTop: 20 }}>
       <Text style={[styles.title, { color: isDark ? "white" : "#111" }]}>
-        {App_Language.startsWith("ar") ? "المشاريع" : "Projects"}
+        {App_Language.startsWith("ar") ? "المهارات" : "Skills"}
       </Text>
 
-      <ProjectList
-        projects={projects}
+      <SkillsList
         isDark={isDark}
-        isCurrentUser={false}
+        skills={skills}
+        allSkills={allSkills}
         App_Language={App_Language}
-        onRequestProject={onRequestProject}
       />
     </View>
   );
