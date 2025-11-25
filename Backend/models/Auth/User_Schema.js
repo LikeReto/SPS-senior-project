@@ -98,7 +98,7 @@ const User_Schema = new mongoose.Schema({
     },
     User_Rating: {
         type: Number,
-        default: 0,
+        default: 5,
     },
     User_Reviews: {
         type: Array,

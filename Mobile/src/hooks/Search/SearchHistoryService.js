@@ -34,3 +34,17 @@ export async function getSearchHistory() {
     return [];
   }
 }
+
+export const clearSearchHistory = async () => {
+  await AsyncStorage.removeItem(KEY);
+};
+
+export const deleteSearchItem = async (item) => {
+  const history = await AsyncStorage.getItem("search_history");
+  if (!history) return;
+
+  const parsed = JSON.parse(history);
+  const updated = parsed.filter(h => h !== item);
+
+  await AsyncStorage.setItem("search_history", JSON.stringify(updated));
+};

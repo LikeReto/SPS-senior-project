@@ -45,7 +45,11 @@ export default function useWorkersFilter({
       workers = workers.filter(
         (w) =>
           (w.User_Name || "").toLowerCase().includes(q) ||
-          (w.User_Job || "").toLowerCase().includes(q)
+          (w.User_Job || "").toLowerCase().includes(q) ||
+          (Array.isArray(w.User_Skills) &&
+            w.User_Skills.some((skill) =>
+              skill.toLowerCase().includes(q)
+            ))
       );
     }
 

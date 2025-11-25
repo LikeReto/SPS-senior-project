@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   View,
   TextInput,
@@ -14,7 +14,27 @@ export default function SearchHeader({
   darkMode,
   App_Language,
   onBack,
+  onFoucus,
+  onBlur,
 }) {
+  const typingTimeout = useRef(null);
+
+  const handleTyping = (text) => {
+    setQuery(text);
+
+    // Clear previous timer
+    if (typingTimeout.current) {
+      clearTimeout(typingTimeout.current);
+    }
+
+    // Wait 600ms after last keystroke
+    typingTimeout.current = setTimeout(() => {
+      if (text.trim().length > 1) {
+        saveSearchQuery(text);
+      }
+    }, 600);
+  };
+
   return (
     <View style={styles.header}>
       {/* Back Button */}
@@ -29,14 +49,13 @@ export default function SearchHeader({
       {/* Search Input */}
       <TextInput
         value={query}
-        onChangeText={(text) => {
-          setQuery(text);
-          saveSearchQuery(text);   // 🔥 save every search
-        }}
+        onChangeText={handleTyping}
+        onFocus={onFoucus}
+        onBlur={onBlur}
         placeholder={
           App_Language.startsWith("ar")
-            ? "البحث عن مقدمي الخدمات..."
-            : "Search workers..."
+            ? "البحث..."
+            : "Search..."
         }
         placeholderTextColor={darkMode === "light" ? "#888" : "#aaa"}
         style={[
@@ -72,12 +91,10 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     alignItems: "center",
   },
-
   backButton: {
     padding: 8,
     borderRadius: 12,
   },
-
   searchInput: {
     flex: 1,
     borderRadius: 12,
@@ -86,7 +103,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 8,
   },
-
   clearButton: {
     marginLeft: 8,
   },

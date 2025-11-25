@@ -3,8 +3,10 @@ import { View, StyleSheet } from "react-native";
 
 import { useAuth } from "@/src/Contexts/AuthContext";
 import { useSocket } from "@/src/Contexts/SocketContext";
+import { getSearchHistory, deleteSearchItem, clearSearchHistory } from "@/src/hooks/Search/SearchHistoryService";
 
 import SearchHeader from "@/src/components/Search/SearchHeader";
+import SearchHistoryList from "@/src/components/Search/SearchHistoryList";
 import SortButtons from "@/src/components/Search/SortButtons";
 import CategoryList from "@/src/components/Search/CategoryList";
 import WorkersList from "@/src/components/Search/WorkersList";
@@ -30,8 +32,28 @@ export default function Search() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [visibleCount, setVisibleCount] = useState(10);
   const [refreshing, setRefreshing] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const [searchHistory, setSearchHistory] = useState([]);
 
   useEffect(() => setVisibleCount(10), [query, selectedCategory]);
+
+  useEffect(() => {
+    // load search history when needed
+    if (showHistory) {
+      loadSearchHistory();
+    }
+  }, [showHistory]);
+
+  const loadSearchHistory = async () => {
+    const history = await getSearchHistory();
+    setSearchHistory(history);
+  };
+
+  const handleDeleteHistoryItem = (item) => {
+    deleteSearchItem(item); // Your function in SearchHistoryService
+    setSearchHistory(prev => prev.filter(h => h !== item));
+  };
 
   const { filteredWorkers, loadMoreWorkers } = useWorkersFilter({
     Providers,
@@ -68,7 +90,29 @@ export default function Search() {
         darkMode={darkMode}
         App_Language={App_Language}
         onBack={() => Expo_Router.back()}
+        onFoucus={() => setShowHistory(true)}
+        onBlur={() => setShowHistory(false)}
       />
+
+      {showHistory && searchHistory.length > 0 && (
+        <SearchHistoryList
+          history={searchHistory}
+          onPressItem={(val) => {
+            setQuery(val);
+            setShowHistory(false);
+          }}
+          onClear={async () => {
+            await clearSearchHistory();
+            setSearchHistory([]);
+          }}
+          onDeleteItem={async (item) => {
+            await deleteSearchItem(item);
+            setSearchHistory((prev) => prev.filter((h) => h !== item));
+          }}
+          darkMode={darkMode}
+          App_Language={App_Language}
+        />
+      )}
 
       <SortButtons
         sortBy={sortBy}

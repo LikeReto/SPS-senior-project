@@ -26,28 +26,50 @@ export default function ProfileEditableForm({
   onSkip,
 }) {
   const { App_Language, Expo_Router, darkMode, currentUser_Data } = useAuth();
+  const isDark = darkMode === "dark";
+  const isArabic = App_Language.startsWith("ar");
 
   const [UpdatingLoading, setUpdatingLoading] = useState(false);
-  const [User_Name, setUser_Name] = useState(currentUser_Data?.User_Name || "");
-  const [User_UserName, setUser_UserName] = useState(currentUser_Data?.User_UserName || "");
-  const [User_Job, setUser_Job] = useState(currentUser_Data?.User_Job || "");
-  const [User_Freelancer, setUser_Freelancer] = useState(currentUser_Data?.User_Freelancer || false);
-  const [User_PhoneNumber, setUser_PhoneNumber] = useState(currentUser_Data?.User_PhoneNumber || "");
-  const [User_Degree, setUser_Degree] = useState(currentUser_Data?.User_Degree || "");
-  const [User_Profile_Picture, setUser_Profile_Picture] = useState(currentUser_Data?.User_Profile_Picture || "");
-  const [selectedSkills, setSelectedSkills] = useState(currentUser_Data?.User_Skills || []);
 
-  const [countryCode, setCountryCode] = useState(currentUser_Data?.User_CountryCode?.length > 4
-    ? currentUser_Data?.User_CountryCode
-    : "SA");
-  const [callingCode, setCallingCode] = useState(currentUser_Data?.User_CallingCode || "966");
+  const [User_Name, setUser_Name] = useState(currentUser_Data?.User_Name || "");
+  const [User_UserName, setUser_UserName] = useState(
+    currentUser_Data?.User_UserName || ""
+  );
+  const [User_Job, setUser_Job] = useState(currentUser_Data?.User_Job || "");
+  const [User_Freelancer, setUser_Freelancer] = useState(
+    currentUser_Data?.User_Freelancer || false
+  );
+  const [User_PhoneNumber, setUser_PhoneNumber] = useState(
+    currentUser_Data?.User_PhoneNumber || ""
+  );
+  const [User_Degree, setUser_Degree] = useState(
+    currentUser_Data?.User_Degree || ""
+  );
+  const [User_Profile_Picture, setUser_Profile_Picture] = useState(
+    currentUser_Data?.User_Profile_Picture || ""
+  );
+  const [selectedSkills, setSelectedSkills] = useState(
+    currentUser_Data?.User_Skills || []
+  );
+
+  const [countryCode, setCountryCode] = useState(
+    currentUser_Data?.User_CountryCode?.length > 1
+      ? currentUser_Data?.User_CountryCode
+      : "SA"
+  );
+  const [callingCode, setCallingCode] = useState(
+    currentUser_Data?.User_CallingCode || "966"
+  );
 
   const [showDegreeModal, setShowDegreeModal] = useState(false);
   const [showSkillsModal, setShowSkillsModal] = useState(false);
 
-
   const { pickImage } = useImagePicker();
 
+  const profilePreviewUri =
+    typeof User_Profile_Picture === "string"
+      ? User_Profile_Picture
+      : User_Profile_Picture?.uri;
 
   const toggleSkill = (skill) => {
     setSelectedSkills((prev) =>
@@ -55,141 +77,273 @@ export default function ProfileEditableForm({
     );
   };
 
-
   const handleSave = async () => {
     if (!User_Name || !User_Job || !User_Degree || !User_UserName) {
-      Alert.alert("Validation Error", "Name, Username, Job, and Degree are required!");
+      Alert.alert(
+        isArabic ? "خطأ في التحقق" : "Validation Error",
+        isArabic
+          ? "الاسم واسم المستخدم والمسمى الوظيفي والدرجة مطلوبة!"
+          : "Name, Username, Job, and Degree are required!"
+      );
       return;
     }
-    let fixed_ProfilePicture_response = ''
+
+    let fixed_ProfilePicture_response = "";
 
     try {
       setUpdatingLoading(true);
-      if (User_Profile_Picture && User_Profile_Picture?.uri?.length > 0) {
-        fixed_ProfilePicture_response = await fixUploaded_File(User_Profile_Picture);
+
+      if (
+        User_Profile_Picture &&
+        User_Profile_Picture?.uri?.length > 0
+      ) {
+        fixed_ProfilePicture_response = await fixUploaded_File(
+          User_Profile_Picture
+        );
       }
+
       const updatedData = {
-        showSkip: showSkip,
+        showSkip,
         _id: currentUser_Data?._id,
         User_Name,
         User_UserName,
         User_Job,
         User_Freelancer,
-        User_PhoneNumber: User_PhoneNumber,
+        User_PhoneNumber,
         User_CountryCode: countryCode,
         User_CallingCode: callingCode,
         User_Degree,
-        User_Profile_Picture: fixed_ProfilePicture_response.length > 0 ? fixed_ProfilePicture_response : User_Profile_Picture,
+        User_Profile_Picture:
+          fixed_ProfilePicture_response && fixed_ProfilePicture_response.uri
+            ? fixed_ProfilePicture_response
+            : User_Profile_Picture,
         User_Skills: selectedSkills,
         onBoarded_finished: true,
       };
 
       if (onSave) onSave(updatedData);
-    }
-    catch (error) {
-      console.error("❌ Error in saving profile:", error.message);
-    }
-    finally {
+    } catch (error) {
+      console.error("❌ Error in saving profile:", error?.message || error);
+    } finally {
       setUpdatingLoading(false);
     }
   };
 
   return (
     <ScrollView
-      style={{
-        flex: 1,
-        backgroundColor: darkMode === "light" ? "#f5f5f5" : "#0a0a0a",
-      }}
-      contentContainerStyle={{ paddingBottom: 50 }}
+      style={[
+        styles.screen,
+        {
+          backgroundColor: isDark ? "#0a0a0a" : "#FAFAFA",
+        },
+      ]}
+      contentContainerStyle={{ paddingBottom: 60 }}
     >
-      {/* Skip button */}
-      {showSkip ? (
-        <View style={{ flexDirection: "row", justifyContent: "flex-end", padding: 20 }}>
-          <TouchableOpacity onPress={onSkip} style={styles.skipButton}>
-            <Text style={[styles.title, { color: darkMode === "light" ? "#111" : "white" }]}>
-              {App_Language.startsWith("ar") ? "تخطى" : "Skip"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={styles.header}>
-          {Expo_Router.canGoBack() && (
-            <TouchableOpacity onPress={() => Expo_Router.back()}>
-              <Ionicons name="arrow-back" size={28} color={darkMode === "light" ? "#111" : "white"} />
+      {/* HEADER / SKIP */}
+      <View style={styles.headerRow}>
+        {showSkip ? (
+          <View style={{ flex: 1, alignItems: "flex-end" }}>
+            <TouchableOpacity
+              onPress={onSkip}
+              style={[
+                styles.skipPill,
+                { backgroundColor: isDark ? "#111827" : "#e5e7eb" },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.skipText,
+                  { color: isDark ? "#e5e7eb" : "#111827" },
+                ]}
+              >
+                {isArabic ? "تخطَّى" : "Skip"}
+              </Text>
             </TouchableOpacity>
-          )}
-          <Text style={[styles.title, { color: darkMode === "light" ? "#111" : "white" }]}>
-            {App_Language.startsWith("ar") ? "تعديل الملف الشخصي" : "Edit Profile"}
-          </Text>
-        </View>
-      )}
+          </View>
+        ) : (
+          <>
+            {Expo_Router.canGoBack() && (
+              <TouchableOpacity
+                onPress={() => Expo_Router.back()}
+                style={styles.backBtn}
+              >
+                <Ionicons
+                  name={isArabic ? "arrow-forward" : "arrow-back"}
+                  size={24}
+                  color={isDark ? "#e5e7eb" : "#111827"}
+                />
+              </TouchableOpacity>
+            )}
+            <Text
+              style={[
+                styles.screenTitle,
+                { color: isDark ? "#e5e7eb" : "#020617" },
+              ]}
+            >
+              {isArabic ? "تعديل الملف الشخصي" : "Edit Profile"}
+            </Text>
+          </>
+        )}
+      </View>
 
-      {/* Profile Image */}
-      <View
-        style={{
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <TouchableOpacity onPress={async () => {
-          const pick_image_response = await pickImage({ multiple: false, allowVideo: false });
-          if (pick_image_response) {
-            setUser_Profile_Picture(pick_image_response);
-          }
-          else {
-            console.log("❌ No image selected");
-          }
-        }}
-          style={styles.imageContainer}
+      {/* AVATAR + FREELANCER TOGGLE */}
+      <View style={styles.avatarSection}>
+        <TouchableOpacity
+          onPress={async () => {
+            const pick_image_response = await pickImage({
+              multiple: false,
+              allowVideo: false,
+            });
+            if (pick_image_response) {
+              setUser_Profile_Picture(pick_image_response);
+            } else {
+              console.log("❌ No image selected");
+            }
+          }}
+          style={[
+            styles.avatarWrapper,
+            {
+              borderColor: User_Profile_Picture
+                ? "#10b981"
+                : "rgba(148,163,184,0.8)",
+            },
+          ]}
         >
-          {User_Profile_Picture ? (
-            <Image source={{ uri: User_Profile_Picture }} style={styles.image} />
+          {profilePreviewUri ? (
+            <Image
+              source={{ uri: profilePreviewUri }}
+              style={styles.avatarImage}
+            />
           ) : (
             <Ionicons
               name="person-circle-outline"
-              size={100}
-              color={darkMode === "light" ? "#555" : "white"}
+              size={90}
+              color={isDark ? "#64748b" : "#94a3b8"}
             />
           )}
-          <Text style={{ marginTop: 8, color: "#10b981", fontWeight: "600" }}>
-            {App_Language.startsWith("ar") ? "تغيير الصورة" : "Change Photo"}
+          <View style={styles.avatarEditPill}>
+            <Ionicons name="camera" size={14} color="#ecfdf5" />
+            <Text style={styles.avatarEditText}>
+              {isArabic ? "تغيير" : "Change"}
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => setUser_Freelancer(!User_Freelancer)}
+          style={[
+            styles.freelancerToggle,
+            {
+              backgroundColor: User_Freelancer
+                ? "rgba(250, 204, 21, 0.12)"
+                : isDark
+                  ? "#020617"
+                  : "#e5e7eb",
+              borderColor: User_Freelancer ? "#FFD700" : "transparent",
+            },
+          ]}
+        >
+          <Ionicons
+            name={User_Freelancer ? "star" : "star-outline"}
+            size={16}
+            color={User_Freelancer ? "#FFD700" : isDark ? "#e5e7eb" : "#111827"}
+          />
+          <Text
+            style={[
+              styles.freelancerText,
+              {
+                color: User_Freelancer
+                  ? "#FFD700"
+                  : isDark
+                    ? "#e5e7eb"
+                    : "#111827",
+              },
+            ]}
+          >
+            {isArabic ? "مستقل (Freelancer)" : "Freelancer"}
           </Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.form}>
-        {/* Checkbox for Freelancer */}
-        <View style={{ flexDirection: App_Language.startsWith("ar") ? "row-reverse" : "row", alignItems: "center", marginBottom: 16 }}>
-          <Text style={{ marginLeft: 8, color: darkMode === "dark" ? "white" : "#111", fontSize: 16 }}>
-            {App_Language.startsWith("ar") ? "عمل حر : " : "Freelancer : "}
-          </Text>
-          <TouchableOpacity
-            onPress={() => setUser_Freelancer(!User_Freelancer)}
-            style={{
-              width: 20,
-              height: 20,
-              borderRadius: 4,
-              borderWidth: 2,
-              borderColor: User_Freelancer ? "#10b981" : "#666",
-              backgroundColor: User_Freelancer ? "#10b981" : "transparent",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            {User_Freelancer && <Ionicons name="checkmark" size={16} color="white" />}
-          </TouchableOpacity>
-        </View>
-
-        <Field label={App_Language.startsWith("ar") ? "الاسم" : "Name"} value={User_Name} setValue={setUser_Name} isDark={darkMode === "dark"} />
-        <Field label={App_Language.startsWith("ar") ? "اسم المستخدم" : "Username"} value={User_UserName} setValue={setUser_UserName} isDark={darkMode === "dark"} />
-        <Field label={App_Language.startsWith("ar") ? "المسمى الوظيفي" : "Job"} value={User_Job} setValue={setUser_Job} isDark={darkMode === "dark"} />
-
-
-        {/* Phone with country picker */}
-        <Text style={[styles.label, { color: darkMode === "dark" ? "white" : "#111" }]}>
-          {App_Language.startsWith("ar") ? "رقم الهاتف" : "Phone"}
+      {/* CARD: BASIC INFO */}
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: isDark ? "#020617" : "#ffffff",
+          },
+        ]}
+      >
+        <Text
+          style={[
+            styles.cardTitle,
+            { color: isDark ? "#e5e7eb" : "#0f172a" },
+          ]}
+        >
+          {isArabic ? "البيانات الأساسية" : "Basic Info"}
         </Text>
-        <View style={[styles.phoneContainer, { backgroundColor: darkMode === "dark" ? "#1a1a1a" : "#fff" }]}>
+
+        <Field
+          label={isArabic ? "الاسم الكامل" : "Full Name"}
+          value={User_Name}
+          setValue={setUser_Name}
+          isDark={isDark}
+          icon="person-outline"
+        />
+
+        <Field
+          label={isArabic ? "اسم المستخدم" : "Username"}
+          value={User_UserName}
+          setValue={setUser_UserName}
+          isDark={isDark}
+          icon="at-outline"
+        />
+
+        <Field
+          label={isArabic ? "المسمى الوظيفي" : "Job Title"}
+          value={User_Job}
+          setValue={setUser_Job}
+          isDark={isDark}
+          icon="briefcase-outline"
+        />
+      </View>
+
+      {/* CARD: CONTACT */}
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: isDark ? "#020617" : "#ffffff",
+          },
+        ]}
+      >
+        <Text
+          style={[
+            styles.cardTitle,
+            { color: isDark ? "#e5e7eb" : "#0f172a" },
+          ]}
+        >
+          {isArabic ? "التواصل" : "Contact"}
+        </Text>
+
+        <Text
+          style={[
+            styles.label,
+            { color: isDark ? "#e5e7eb" : "#111827" },
+          ]}
+        >
+          {isArabic ? "رقم الهاتف" : "Phone number"}
+        </Text>
+
+        <View
+          style={[
+            styles.phoneRow,
+            {
+              backgroundColor: isDark ? "#020617" : "#f9fafb",
+              borderColor: isDark ? "#1e293b" : "#e5e7eb",
+            },
+          ]}
+        >
           <CountryPicker
             countryCode={countryCode}
             withFlag
@@ -200,30 +354,94 @@ export default function ProfileEditableForm({
               setCallingCode(country.callingCode[0]);
             }}
           />
-          <Text style={{ color: darkMode === "dark" ? "white" : "#111" }}>
+          <Text
+            style={{
+              color: isDark ? "#e5e7eb" : "#111827",
+              marginRight: 6,
+              fontWeight: "600",
+            }}
+          >
             +{callingCode}
           </Text>
           <TextInput
-            style={[styles.input, { flex: 1, backgroundColor: "transparent", color: darkMode === "dark" ? "white" : "#111" }]}
+            style={[
+              styles.phoneInput,
+              { color: isDark ? "#e5e7eb" : "#111827" },
+            ]}
             value={User_PhoneNumber}
             onChangeText={setUser_PhoneNumber}
-            placeholder="Phone Number"
-            placeholderTextColor="#666"
+            placeholder={isArabic ? "رقم الهاتف" : "Phone number"}
+            placeholderTextColor={isDark ? "#4b5563" : "#9ca3af"}
             keyboardType="phone-pad"
           />
         </View>
+      </View>
 
-        {/* Degree Picker */}
-        <Text style={[styles.label, { color: darkMode === "dark" ? "white" : "#111" }]}>
-          {App_Language.startsWith("ar") ? "الدرجة العلمية" : "Degree"}
+      {/* CARD: EDUCATION & SKILLS */}
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: isDark ? "#020617" : "#ffffff",
+          },
+        ]}
+      >
+        <Text
+          style={[
+            styles.cardTitle,
+            { color: isDark ? "#e5e7eb" : "#0f172a" },
+          ]}
+        >
+          {isArabic ? "التعليم والمهارات" : "Education & Skills"}
         </Text>
+
+        {/* DEGREE PICKER */}
+        <Text
+          style={[
+            styles.label,
+            { color: isDark ? "#e5e7eb" : "#111827" },
+          ]}
+        >
+          {isArabic ? "الدرجة العلمية" : "Degree"}
+        </Text>
+
         <TouchableOpacity
-          style={[styles.input, { backgroundColor: darkMode === "dark" ? "#1a1a1a" : "#fff" }]}
+          style={[
+            styles.inputContainer,
+            {
+              backgroundColor: isDark ? "#020617" : "#f9fafb",
+              borderColor: isDark ? "#1e293b" : "#e5e7eb",
+            },
+          ]}
           onPress={() => setShowDegreeModal(true)}
         >
-          <Text style={{ color: darkMode === "dark" ? "white" : "#111" }}>
-            {User_Degree || (App_Language.startsWith("ar") ? "اختر الدرجة العلمية" : "Select Degree")}
+          <Ionicons
+            name="school-outline"
+            size={18}
+            color={isDark ? "#e5e7eb" : "#111827"}
+            style={{ marginRight: 8 }}
+          />
+          <Text
+            style={{
+              color: User_Degree
+                ? isDark
+                  ? "#e5e7eb"
+                  : "#111827"
+                : isDark
+                  ? "#4b5563"
+                  : "#9ca3af",
+              flex: 1,
+            }}
+            numberOfLines={1}
+          >
+            {User_Degree ||
+              (isArabic ? "اختر الدرجة العلمية" : "Select degree")}
           </Text>
+          <Ionicons
+            name="chevron-forward"
+            size={18}
+            color={isDark ? "#6b7280" : "#9ca3af"}
+          />
         </TouchableOpacity>
 
         <DegreePicker
@@ -235,39 +453,42 @@ export default function ProfileEditableForm({
           App_Language={App_Language}
         />
 
-        {/* Skills Picker */}
-        <Text style={[styles.label, { color: darkMode === "dark" ? "white" : "#111" }]}>
-          {App_Language.startsWith("ar") ? "المهارات" : "Skills"}
+        {/* SKILLS PICKER */}
+        <Text
+          style={[
+            styles.label,
+            { color: isDark ? "#e5e7eb" : "#111827" },
+          ]}
+        >
+          {isArabic ? "المهارات" : "Skills"}
         </Text>
 
-        <ScrollView
-          style={{ maxHeight: 120 }}
-          showsVerticalScrollIndicator={true}
-          contentContainerStyle={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            alignItems: "center"
-          }}
+        <TouchableOpacity
+          style={[
+            styles.inputContainer,
+            {
+              backgroundColor: isDark ? "#020617" : "#f9fafb",
+              borderColor: isDark ? "#1e293b" : "#e5e7eb",
+              minHeight: 56,
+              paddingVertical: 8,
+            },
+          ]}
+          onPress={() => setShowSkillsModal(true)}
+          activeOpacity={0.9}
         >
-          <TouchableOpacity
-            style={[
-              styles.input,
-              {
-                backgroundColor: darkMode === "dark" ? "#1a1a1a" : "#fff",
-                minHeight: 50,
-                paddingVertical: 8,
-                paddingHorizontal: 10,
-                flexDirection: "row",
-                flexWrap: "wrap",
-                alignItems: "center",
-              },
-            ]}
-            onPress={() => setShowSkillsModal(true)}
-          >
-            {selectedSkills.length > 0 ? (
-              selectedSkills.map((skillName) => {
+          <Ionicons
+            name="sparkles-outline"
+            size={18}
+            color={isDark ? "#e5e7eb" : "#111827"}
+            style={{ marginRight: 8 }}
+          />
+          {selectedSkills.length > 0 ? (
+            <View style={styles.skillsWrap}>
+              {selectedSkills.map((skillName) => {
                 const skill = skillsList.find((s) => s.name === skillName);
-                const label = App_Language.startsWith("ar") ? skill?.label?.ar || skillName : skill?.label?.en || skillName;
+                const label = isArabic
+                  ? skill?.label?.ar || skillName
+                  : skill?.label?.en || skillName;
 
                 return (
                   <View
@@ -275,40 +496,52 @@ export default function ProfileEditableForm({
                     style={[
                       styles.skillTag,
                       {
-                        backgroundColor: darkMode === "dark" ? "#292828FF" : "#e6f9f0",
-                        marginRight: 6,
-                        marginBottom: 6,
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
-                        borderRadius: 12,
-                        flexDirection: "row",
-                        alignItems: "center",
+                        backgroundColor: isDark
+                          ? "#022c22"
+                          : "rgba(16,185,129,0.09)",
                       },
                     ]}
                   >
                     {skill?.icon ? (
                       <skill.icon
-                        size={14}
-                        color={darkMode === "dark" ? "#fff" : "#10b981"}
+                        size={13}
+                        color={isDark ? "#a7f3d0" : "#047857"}
                         style={{ marginRight: 4 }}
                       />
                     ) : skill?.emoji ? (
-                      <Text style={{ fontSize: 14, marginRight: 4 }}>{skill.emoji}</Text>
+                      <Text style={{ fontSize: 13, marginRight: 4 }}>
+                        {skill.emoji}
+                      </Text>
                     ) : null}
-
-                    <Text style={{ color: darkMode === "dark" ? "#fff" : "#10b981", fontSize: 14 }}>
+                    <Text
+                      style={{
+                        color: isDark ? "#a7f3d0" : "#047857",
+                        fontSize: 13,
+                        fontWeight: "600",
+                      }}
+                    >
                       {label}
                     </Text>
                   </View>
                 );
-              })
-            ) : (
-              <Text style={{ color: darkMode === "dark" ? "#aaa" : "#888" }}>
-                {App_Language.startsWith("ar") ? "اختر المهارات" : "Select Skills"}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </ScrollView>
+              })}
+            </View>
+          ) : (
+            <Text
+              style={{
+                color: isDark ? "#4b5563" : "#9ca3af",
+                flex: 1,
+              }}
+            >
+              {isArabic ? "اختر المهارات" : "Select skills"}
+            </Text>
+          )}
+          <Ionicons
+            name="chevron-forward"
+            size={18}
+            color={isDark ? "#6b7280" : "#9ca3af"}
+          />
+        </TouchableOpacity>
 
         <SkillsBottomSheet
           visible={showSkillsModal}
@@ -319,92 +552,264 @@ export default function ProfileEditableForm({
           darkMode={darkMode}
           App_Language={App_Language}
         />
-
-        {/* Save button */}
-        <TouchableOpacity
-          style={[styles.saveButton, { backgroundColor: UpdatingLoading ? "#323533FF" : "#10b981" }]}
-          onPress={handleSave}
-          disabled={UpdatingLoading}
-        >
-          <Text style={{ color: "white", fontWeight: "700" }}>
-            {UpdatingLoading ? <ActivityIndicator color="#fff" /> : App_Language.startsWith("ar") ? "حفظ" : "Save"}
-          </Text>
-        </TouchableOpacity>
       </View>
+
+      {/* SAVE BUTTON */}
+      <TouchableOpacity
+        style={[
+          styles.saveButton,
+          {
+            backgroundColor: UpdatingLoading ? "#15803d" : "#10b981",
+            shadowColor: "#10b981",
+          },
+        ]}
+        onPress={handleSave}
+        disabled={UpdatingLoading}
+        activeOpacity={0.9}
+      >
+        {UpdatingLoading ? (
+          <ActivityIndicator color="#ecfdf5" />
+        ) : (
+          <>
+            <Ionicons name="save-outline" size={18} color="#ecfdf5" />
+            <Text style={styles.saveButtonText}>
+              {isArabic ? "حفظ التغييرات" : "Save Changes"}
+            </Text>
+          </>
+        )}
+      </TouchableOpacity>
     </ScrollView>
   );
 }
 
-/* Reusable Field Subcomponent */
-function Field({ label, value, setValue, isDark, keyboardType = "default" }) {
+/* Reusable Field with Icon & pill style */
+function Field({
+  label,
+  value,
+  setValue,
+  isDark,
+  icon,
+  keyboardType = "default",
+}) {
   return (
-    <>
-      <Text style={[styles.label, { color: isDark ? "white" : "#111" }]}>{label}</Text>
-      <TextInput
-        style={[styles.input, { backgroundColor: isDark ? "#1a1a1a" : "#fff", color: isDark ? "white" : "#111" }]}
-        value={value}
-        onChangeText={setValue}
-        placeholder={label}
-        placeholderTextColor="#666"
-        keyboardType={keyboardType}
-      />
-    </>
+    <View style={{ marginBottom: 14 }}>
+      <Text
+        style={[
+          styles.label,
+          { color: isDark ? "#e5e7eb" : "#111827" },
+        ]}
+      >
+        {label}
+      </Text>
+      <View
+        style={[
+          styles.inputContainer,
+          {
+            backgroundColor: isDark ? "#020617" : "#f9fafb",
+            borderColor: isDark ? "#1e293b" : "#e5e7eb",
+          },
+        ]}
+      >
+        {icon && (
+          <Ionicons
+            name={icon}
+            size={18}
+            color={isDark ? "#e5e7eb" : "#111827"}
+            style={{ marginRight: 8 }}
+          />
+        )}
+        <TextInput
+          style={[
+            styles.textInput,
+            { color: isDark ? "#e5e7eb" : "#111827" },
+          ]}
+          value={value}
+          onChangeText={setValue}
+          placeholder={label}
+          placeholderTextColor={isDark ? "#4b5563" : "#9ca3af"}
+          keyboardType={keyboardType}
+        />
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
+  screen: {
+    flex: 1,
+  },
+
+  /* HEADER */
+  headerRow: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: 10,
   },
-  title: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  imageContainer: {
-    alignItems: "center",
-    marginVertical: 20,
-    borderRadius: 60,
-    padding: 5,
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 999,
     justifyContent: "center",
-
+    alignItems: "center",
+    marginRight: 10,
   },
-  image: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+  screenTitle: {
+    fontSize: 18,
+    fontWeight: "800",
   },
-  form: {
-    marginHorizontal: 20,
+  skipPill: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 999,
   },
-  label: {
+  skipText: {
+    fontWeight: "600",
     fontSize: 14,
-    marginBottom: 6,
+  },
+
+  /* AVATAR SECTION */
+  avatarSection: {
+    alignItems: "center",
+    marginTop: 6,
+    marginBottom: 10,
+  },
+  avatarWrapper: {
+    width: 110,
+    height: 110,
+    borderRadius: 999,
+    borderWidth: 2,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#020617",
+    overflow: "hidden",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+  },
+  avatarEditPill: {
+    position: "absolute",
+    bottom: 4,
+    right: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(15,118,110,0.95)",
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  avatarEditText: {
+    color: "#ecfdf5",
+    fontSize: 10,
+    marginLeft: 3,
     fontWeight: "600",
   },
-  input: {
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-  },
-  saveButton: {
-    backgroundColor: "#10b981",
-    padding: 14,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  skipButton: {
-    backgroundColor: "#484B4AFF",
-    padding: 8,
-    borderRadius: 20,
-  },
-  phoneContainer: {
+
+  freelancerToggle: {
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 12,
-    marginBottom: 16,
+    borderWidth: 1,
+  },
+  freelancerText: {
+    marginLeft: 6,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+
+  /* CARDS */
+  card: {
+    marginHorizontal: 18,
+    marginTop: 14,
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderWidth: 1,
+    borderColor: "rgba(148,163,184,0.35)",
+    shadowOpacity: 0.12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    marginBottom: 10,
+  },
+
+  /* LABELS / INPUTS */
+  label: {
+    fontSize: 13,
+    fontWeight: "600",
+    marginBottom: 6,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+  },
+  textInput: {
+    flex: 1,
+    fontSize: 14,
+  },
+
+  /* PHONE */
+  phoneRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    marginTop: 2,
+  },
+  phoneInput: {
+    flex: 1,
+    fontSize: 14,
+  },
+
+  /* SKILLS */
+  skillsWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    flex: 1,
+  },
+  skillTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    marginRight: 6,
+    marginBottom: 6,
+  },
+
+  /* SAVE BUTTON */
+  saveButton: {
+    marginTop: 20,
+    marginHorizontal: 18,
+    paddingVertical: 14,
+    borderRadius: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowOpacity: 0.25,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
+  },
+  saveButtonText: {
+    color: "#ecfdf5",
+    fontWeight: "700",
+    fontSize: 15,
+    marginLeft: 6,
   },
 });
-
